@@ -9,15 +9,43 @@
     table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
     th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
     th { background: #eee; }
-    button { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    button, select, input { padding: 6px 12px; margin-right: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    button { cursor: pointer; }
     .present { background: #16a34a; color: #fff; }
     .absent { background: #dc2626; color: #fff; }
+    .controls { margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-<h2>Student List from Google Sheets</h2>
-<p>Source: Google Sheet published as CSV</p>
+<h2>Student Attendance</h2>
+<div class="controls">
+  <label>Teacher Name: <input type="text" id="teacherName" placeholder="Enter teacher name"></label>
+  <label>Grade:
+    <select id="gradeSelect">
+      <option value="">Select</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
+  </label>
+  <label>Section:
+    <select id="sectionSelect">
+      <option value="">Select</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+  </label>
+  <button onclick="loadCSVData()">Load Students</button>
+</div>
 
 <table>
   <thead>
@@ -29,7 +57,7 @@
     </tr>
   </thead>
   <tbody id="studentsBody">
-    <tr><td colspan="4">Loading data...</td></tr>
+    <tr><td colspan="4">Waiting to load data...</td></tr>
   </tbody>
 </table>
 
@@ -38,7 +66,7 @@
 </p>
 
 <script>
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=109732210&single=true&output=csv';
+const BASE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?output=csv';
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
@@ -81,34 +109,44 @@ function renderStudents() {
 }
 
 async function loadCSVData() {
+  const grade = $('#gradeSelect').value;
+  const section = $('#sectionSelect').value;
+  if (!grade || !section) {
+    alert('Please select grade and section');
+    return;
+  }
+
   try {
-    const res = await fetch(SHEET_URL);
+    const url = BASE_SHEET_URL + `&gid=109732210&single=true`; // This assumes one sheet now
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Network error');
     const text = await res.text();
     const lines = text.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
 
-    const idIdx = headers.findIndex(h => /^(student_)?id|الرقم|رقم$/i.test(h));
+    const idIdx = headers.findIndex(h => /^(student_)?id|رقم$/i.test(h));
     const nameIdx = headers.findIndex(h => /^(student_)?name|name|الاسم$/i.test(h));
     const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
+    const gradeIdx = headers.findIndex(h => /grade|صف/i.test(h));
+    const sectionIdx = headers.findIndex(h => /section|شعبة/i.test(h));
 
     state.students = lines.slice(1).map((line, i) => {
       const cols = line.split(',');
       return {
         id: cols[idIdx] || `id-${i + 1}`,
         name: cols[nameIdx] || '—',
-        phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—'
+        phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—',
+        grade: cols[gradeIdx] || '',
+        section: cols[sectionIdx] || ''
       };
-    });
+    }).filter(s => s.grade == grade && s.section == section);
 
     renderStudents();
   } catch (err) {
-    $('#studentsBody').innerHTML = `<tr><td colspan="4">Failed to load data from Google Sheets</td></tr>`;
+    $('#studentsBody').innerHTML = `<tr><td colspan="4">Failed to load data</td></tr>`;
     console.error(err);
   }
 }
-
-window.addEventListener('DOMContentLoaded', loadCSVData);
 </script>
 
 </body>
