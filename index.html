@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance List from Google Sheets</title>
+  <title>تسجيل غياب الطلاب</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: ltr; }
+    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
     table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
     th { background: #eee; }
-    button, select, input { padding: 6px 12px; margin-right: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    button, select, input { padding: 6px 12px; margin-left: 10px; border: 1px solid #ccc; border-radius: 6px; }
     button { cursor: pointer; }
     .present { background: #16a34a; color: #fff; }
     .absent { background: #dc2626; color: #fff; }
@@ -18,55 +18,60 @@
 </head>
 <body>
 
-<h2>Student Attendance</h2>
+<h2>تسجيل غياب الطلاب من Google Sheets</h2>
 <div class="controls">
-  <label>Teacher Name: <input type="text" id="teacherName" placeholder="Enter teacher name"></label>
-  <label>Grade:
+  <label>اسم المعلم: <input type="text" id="teacherName" placeholder="اكتب اسم المعلم"></label>
+  <label>الصف:
     <select id="gradeSelect">
-      <option value="">Select</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
+      <option value="">اختر</option>
+      <option value="5">الصف الخامس</option>
+      <option value="6">الصف السادس</option>
+      <option value="7">الصف السابع</option>
+      <option value="8">الصف الثامن</option>
+      <option value="9">الصف التاسع</option>
+      <option value="10">الصف العاشر</option>
+      <option value="11">الصف الحادي عشر</option>
+      <option value="12">الصف الثاني عشر</option>
     </select>
   </label>
-  <label>Section:
+  <label>الشعبة:
     <select id="sectionSelect">
-      <option value="">Select</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
+      <option value="">اختر</option>
+      <option value="1">الشعبة 1</option>
+      <option value="2">الشعبة 2</option>
+      <option value="3">الشعبة 3</option>
+      <option value="4">الشعبة 4</option>
+      <option value="5">الشعبة 5</option>
     </select>
   </label>
-  <button onclick="loadCSVData()">Load Students</button>
+  <button onclick="loadCSVData()">عرض الطلاب</button>
 </div>
 
 <table>
   <thead>
     <tr>
       <th>#</th>
-      <th>Name</th>
-      <th>Phone</th>
-      <th>Status</th>
+      <th>الاسم</th>
+      <th>الهاتف</th>
+      <th>الحالة</th>
     </tr>
   </thead>
   <tbody id="studentsBody">
-    <tr><td colspan="4">Waiting to load data...</td></tr>
+    <tr><td colspan="4">بانتظار تحميل البيانات...</td></tr>
   </tbody>
 </table>
 
 <p>
-  Absent: <span id="absCount">0</span> — Present: <span id="presCount">0</span>
+  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
 </p>
 
 <script>
-const BASE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?output=csv';
+const SHEET_URLS = [
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=109732210&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=643103210&single=true&output=csv'
+];
+
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
@@ -94,7 +99,7 @@ function renderStudents() {
     `;
     const tdStatus = document.createElement('td');
     const btn = document.createElement('button');
-    btn.textContent = present ? 'Present' : 'Absent';
+    btn.textContent = present ? 'حاضر' : 'غائب';
     btn.className = present ? 'present' : 'absent';
     btn.onclick = () => {
       state.attendance[student.id] = !state.attendance[student.id];
@@ -112,40 +117,44 @@ async function loadCSVData() {
   const grade = $('#gradeSelect').value;
   const section = $('#sectionSelect').value;
   if (!grade || !section) {
-    alert('Please select grade and section');
+    alert('يرجى اختيار الصف والشعبة');
     return;
   }
 
-  try {
-    const url = BASE_SHEET_URL + `&gid=109732210&single=true`; // This assumes one sheet now
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  state.students = [];
 
-    const idIdx = headers.findIndex(h => /^(student_)?id|رقم$/i.test(h));
-    const nameIdx = headers.findIndex(h => /^(student_)?name|name|الاسم$/i.test(h));
-    const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
-    const gradeIdx = headers.findIndex(h => /grade|صف/i.test(h));
-    const sectionIdx = headers.findIndex(h => /section|شعبة/i.test(h));
+  for (const url of SHEET_URLS) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Network error');
+      const text = await res.text();
+      const lines = text.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
 
-    state.students = lines.slice(1).map((line, i) => {
-      const cols = line.split(',');
-      return {
-        id: cols[idIdx] || `id-${i + 1}`,
-        name: cols[nameIdx] || '—',
-        phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—',
-        grade: cols[gradeIdx] || '',
-        section: cols[sectionIdx] || ''
-      };
-    }).filter(s => s.grade == grade && s.section == section);
+      const idIdx = headers.findIndex(h => /^(student_)?id|رقم$/i.test(h));
+      const nameIdx = headers.findIndex(h => /^(student_)?name|name|الاسم$/i.test(h));
+      const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
+      const gradeIdx = headers.findIndex(h => /grade|صف/i.test(h));
+      const sectionIdx = headers.findIndex(h => /section|شعبة/i.test(h));
 
-    renderStudents();
-  } catch (err) {
-    $('#studentsBody').innerHTML = `<tr><td colspan="4">Failed to load data</td></tr>`;
-    console.error(err);
+      const students = lines.slice(1).map((line, i) => {
+        const cols = line.split(',');
+        return {
+          id: cols[idIdx] || `id-${i + 1}`,
+          name: cols[nameIdx] || '—',
+          phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—',
+          grade: cols[gradeIdx] || '',
+          section: cols[sectionIdx] || ''
+        };
+      }).filter(s => s.grade == grade && s.section == section);
+
+      state.students.push(...students);
+    } catch (err) {
+      console.error('فشل تحميل:', url);
+    }
   }
+
+  renderStudents();
 }
 </script>
 
