@@ -86,17 +86,18 @@ async function loadCSVData() {
     if (!res.ok) throw new Error('Network error');
     const text = await res.text();
     const lines = text.trim().split('\n');
-    const headers = lines[0].split(',');
-    const idIdx = headers.findIndex(h => /student_id|id/i.test(h));
-    const nameIdx = headers.findIndex(h => /student_name|name|الاسم/i.test(h));
-    const phoneIdx = headers.findIndex(h => /phone|الهاتف|mobile/i.test(h));
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+
+    const idIdx = headers.findIndex(h => /^(student_)?id|الرقم|رقم$/i.test(h));
+    const nameIdx = headers.findIndex(h => /^(student_)?name|الاسم$/i.test(h));
+    const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
 
     state.students = lines.slice(1).map((line, i) => {
       const cols = line.split(',');
       return {
         id: cols[idIdx] || `id-${i + 1}`,
-        name: cols[nameIdx] || '',
-        phone: cols[phoneIdx]?.replace(/\s+/g, '') || ''
+        name: cols[nameIdx] || '—',
+        phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—'
       };
     });
 
