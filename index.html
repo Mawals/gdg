@@ -1,93 +1,114 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>تسجيل غياب — Google Sheets</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قائمة الغياب من Google Sheets</title>
   <style>
-    body { font-family: 'Tajawal', sans-serif; background:#f4f4f4; color:#111; padding:20px }
-    table { width:100%; border-collapse: collapse; margin-top:20px; background:#fff }
-    th, td { padding:10px; border:1px solid #ccc; text-align:right }
-    th { background:#eee }
-    button { padding:6px 10px; border:none; border-radius:6px; cursor:pointer }
-    .present { background:#16a34a; color:white }
-    .absent { background:#dc2626; color:white }
+    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
+    th { background: #eee; }
+    button { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    .present { background: #16a34a; color: #fff; }
+    .absent { background: #dc2626; color: #fff; }
   </style>
 </head>
 <body>
 
 <h2>قائمة الطلبة من Google Sheets</h2>
-<p>المصدر: Google Sheets (نُشرت بصيغة CSV)</p>
+<p>مصدر البيانات: جدول Google Sheets منشور بصيغة CSV</p>
 
 <table>
   <thead>
-    <tr><th>#</th><th>اسم الطالب</th><th>الهاتف</th><th>الحالة</th></tr>
+    <tr>
+      <th>#</th>
+      <th>الاسم</th>
+      <th>الهاتف</th>
+      <th>الحالة</th>
+    </tr>
   </thead>
-  <tbody id="studentsBody"></tbody>
+  <tbody id="studentsBody">
+    <tr><td colspan="4">يتم تحميل البيانات...</td></tr>
+  </tbody>
 </table>
 
-<p>الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span></p>
+<p>
+  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
+</p>
 
 <script>
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=109732210&single=true&output=csv';
-
-const $ = s => document.querySelector(s);
+const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
 function updateCounts() {
-  let abs = 0, pres = 0;
-  state.students.forEach(s => state.attendance[s.id] === false ? abs++ : pres++);
-  $('#absCount').textContent = abs;
-  $('#presCount').textContent = pres;
+  let absent = 0, present = 0;
+  state.students.forEach(s => state.attendance[s.id] === false ? absent++ : present++);
+  $('#absCount').textContent = absent;
+  $('#presCount').textContent = present;
 }
 
-function render() {
+function renderStudents() {
   const tbody = $('#studentsBody');
   tbody.innerHTML = '';
-  state.students.forEach((s, i) => {
-    if (!(s.id in state.attendance)) state.attendance[s.id] = true;
+
+  state.students.forEach((student, index) => {
+    if (!(student.id in state.attendance)) {
+      state.attendance[student.id] = true;
+    }
+    const present = state.attendance[student.id];
     const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${student.name}</td>
+      <td>${student.phone}</td>
+    `;
+    const tdStatus = document.createElement('td');
     const btn = document.createElement('button');
-    btn.textContent = state.attendance[s.id] ? 'حاضر' : 'غائب';
-    btn.className = state.attendance[s.id] ? 'present' : 'absent';
+    btn.textContent = present ? 'حاضر' : 'غائب';
+    btn.className = present ? 'present' : 'absent';
     btn.onclick = () => {
-      state.attendance[s.id] = !state.attendance[s.id];
-      render();
+      state.attendance[student.id] = !state.attendance[student.id];
+      renderStudents();
     };
-    tr.innerHTML = `<td>${i+1}</td><td>${s.name}</td><td>${s.phone}</td>`;
-    const td = document.createElement('td');
-    td.appendChild(btn);
-    tr.appendChild(td);
+    tdStatus.appendChild(btn);
+    tr.appendChild(tdStatus);
     tbody.appendChild(tr);
   });
+
   updateCounts();
 }
 
-async function loadStudentsFromCSV() {
+async function loadCSVData() {
   try {
     const res = await fetch(SHEET_URL);
+    if (!res.ok) throw new Error('Network error');
     const text = await res.text();
     const lines = text.trim().split('\n');
     const headers = lines[0].split(',');
-    const idx = {
-      id: headers.findIndex(h => /student_id|id/i.test(h)),
-      name: headers.findIndex(h => /student_name|name|الاسم/i.test(h)),
-      phone: headers.findIndex(h => /phone|الهاتف|mobile/i.test(h))
-    };
+    const idIdx = headers.findIndex(h => /student_id|id/i.test(h));
+    const nameIdx = headers.findIndex(h => /student_name|name|الاسم/i.test(h));
+    const phoneIdx = headers.findIndex(h => /phone|الهاتف|mobile/i.test(h));
+
     state.students = lines.slice(1).map((line, i) => {
-      const v = line.split(',');
+      const cols = line.split(',');
       return {
-        id: v[idx.id] || `id-${i+1}`,
-        name: v[idx.name] || '',
-        phone: v[idx.phone]?.replace(/\s+/g, '') || ''
+        id: cols[idIdx] || `id-${i + 1}`,
+        name: cols[nameIdx] || '',
+        phone: cols[phoneIdx]?.replace(/\s+/g, '') || ''
       };
     });
-    render();
-  } catch (e) {
-    alert('فشل تحميل البيانات من Google Sheets');
-    console.error(e);
+
+    renderStudents();
+  } catch (err) {
+    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات من Google Sheets</td></tr>`;
+    console.error(err);
   }
 }
 
-loadStudentsFromCSV();
-</scr
+window.addEventListener('DOMContentLoaded', loadCSVData);
+</script>
+
+</body>
+</html>
