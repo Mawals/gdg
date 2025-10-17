@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قائمة الغياب من Google Sheets</title>
+  <title>Attendance List from Google Sheets</title>
   <style>
-    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: ltr; }
     table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
     th { background: #eee; }
     button { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
     .present { background: #16a34a; color: #fff; }
@@ -16,25 +16,25 @@
 </head>
 <body>
 
-<h2>قائمة الطلبة من Google Sheets</h2>
-<p>مصدر البيانات: جدول Google Sheets منشور بصيغة CSV</p>
+<h2>Student List from Google Sheets</h2>
+<p>Source: Google Sheet published as CSV</p>
 
 <table>
   <thead>
     <tr>
       <th>#</th>
-      <th>الاسم</th>
-      <th>الهاتف</th>
-      <th>الحالة</th>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Status</th>
     </tr>
   </thead>
   <tbody id="studentsBody">
-    <tr><td colspan="4">يتم تحميل البيانات...</td></tr>
+    <tr><td colspan="4">Loading data...</td></tr>
   </tbody>
 </table>
 
 <p>
-  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
+  Absent: <span id="absCount">0</span> — Present: <span id="presCount">0</span>
 </p>
 
 <script>
@@ -66,7 +66,7 @@ function renderStudents() {
     `;
     const tdStatus = document.createElement('td');
     const btn = document.createElement('button');
-    btn.textContent = present ? 'حاضر' : 'غائب';
+    btn.textContent = present ? 'Present' : 'Absent';
     btn.className = present ? 'present' : 'absent';
     btn.onclick = () => {
       state.attendance[student.id] = !state.attendance[student.id];
@@ -89,7 +89,7 @@ async function loadCSVData() {
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
 
     const idIdx = headers.findIndex(h => /^(student_)?id|الرقم|رقم$/i.test(h));
-    const nameIdx = headers.findIndex(h => /^(student_)?name|الاسم$/i.test(h));
+    const nameIdx = headers.findIndex(h => /^(student_)?name|name|الاسم$/i.test(h));
     const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
 
     state.students = lines.slice(1).map((line, i) => {
@@ -103,7 +103,7 @@ async function loadCSVData() {
 
     renderStudents();
   } catch (err) {
-    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات من Google Sheets</td></tr>`;
+    $('#studentsBody').innerHTML = `<tr><td colspan="4">Failed to load data from Google Sheets</td></tr>`;
     console.error(err);
   }
 }
