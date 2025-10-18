@@ -3,106 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>تسجيل غياب الطلبة</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-yVIcH6CkKGVQIQvEoJFrAEqjv38xq+WmJQj1ycwIv1ZGZqVgLxA1ODxTgcyh4K6QkoQWzrgAzNTZaO1Jwl9Lww==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <title>تسجيل غياب الطلاب</title>
   <style>
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: linear-gradient(to bottom right, #eef2f3, #d3cce3);
-      color: #111;
-      padding: 20px;
-      direction: rtl;
-    }
-    h2 {
-      background: linear-gradient(to left, #6a11cb, #2575fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 26px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 12px;
-    }
-    .logo img {
-      max-width: 140px;
-      height: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      margin-top: 20px;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: right;
-    }
-    th {
-      background-color: #f0f4f8;
-      font-weight: bold;
-    }
-    button, select, input {
-      padding: 8px 14px;
-      margin: 6px 10px 6px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-    button {
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    button:hover {
-      opacity: 0.9;
-      transform: scale(1.03);
-    }
-    .present {
-      background: linear-gradient(to right, #43e97b, #38f9d7);
-      color: #fff;
-      border: none;
-    }
-    .absent {
-      background: linear-gradient(to right, #ff0844, #ffb199);
-      color: #fff;
-      border: none;
-    }
-    .controls {
-      margin-bottom: 20px;
-      padding: 10px;
-      background: #ffffffcc;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .controls label {
-      display: inline-block;
-      margin-left: 15px;
-    }
-    p {
-      font-weight: bold;
-      margin-top: 20px;
-      background: #fff3cd;
-      padding: 10px;
-      border: 1px solid #ffeeba;
-      border-radius: 8px;
-    }
+    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
+    th { background: #eee; }
+    button, select, input { padding: 6px 12px; margin-left: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    button { cursor: pointer; }
+    .present { background: #16a34a; color: #fff; }
+    .absent { background: #dc2626; color: #fff; }
+    .controls { margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-<div class="logo">
-  <img src="WhatsApp%20Image%202025-10-18%20at%206.20.07%20PM.jpeg" alt="شعار مدرسة معولة بن شمس">
-</div>
-<h2>تسجيل غياب الطلبة بمدرسة معولة بن شمس</h2>
+<h2>تسجيل غياب الطلاب من Google Sheets</h2>
 
 <div class="controls">
   <label>اسم المعلم: <input type="text" id="teacherName" placeholder="اكتب اسم المعلم"></label>
@@ -124,12 +40,166 @@
       <option value="">اختر</option>
     </select>
   </label>
-  <button onclick="loadCSVData()">
-    <i class="fas fa-eye"></i> عرض الطلبة
-  </button>
-  <button onclick="exportToGoogleSheet()">
-    <i class="fas fa-paper-plane"></i> إرسال إلى Google Sheets
-  </button>
+  <button onclick="loadCSVData()">عرض الطلاب</button>
+  <button onclick="exportToGoogleSheet()">📤 إرسال إلى Google Sheets</button>
 </div>
 
-<!-- بقية الكود يبقى كما هو -->
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>الاسم</th>
+      <th>الهاتف</th>
+      <th>الحالة</th>
+    </tr>
+  </thead>
+  <tbody id="studentsBody">
+    <tr><td colspan="4">بانتظار تحميل البيانات...</td></tr>
+  </tbody>
+</table>
+
+<p>
+  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
+</p>
+
+<script>
+const SHEET_URLS = [
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv'
+];
+const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv84R9Pb5e9QtXqXKDzc9pNZ2pAJu0N2mxz9HikwwvTaDsufqnMl23lK/exec';
+const $ = s => document.querySelector(s);
+const state = { students: [], attendance: {} };
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sectionMap = {
+    '5': 3, '6': 3, '7': 3, '8': 3, '9': 3,
+    '10': 4, '11': 6, '12': 5  // ✅ التعديل هنا
+  };
+  const gradeSelect = $('#gradeSelect');
+  const sectionSelect = $('#sectionSelect');
+
+  gradeSelect.addEventListener('change', () => {
+    const grade = gradeSelect.value;
+    const count = sectionMap[grade] || 0;
+    sectionSelect.innerHTML = '<option value="">اختر</option>';
+    for (let i = 1; i <= count; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `الشعبة ${i}`;
+      sectionSelect.appendChild(opt);
+    }
+  });
+});
+
+function updateCounts() {
+  let absent = 0, present = 0;
+  state.students.forEach(s => state.attendance[s.id] === false ? absent++ : present++);
+  $('#absCount').textContent = absent;
+  $('#presCount').textContent = present;
+}
+
+function renderStudents() {
+  const tbody = $('#studentsBody');
+  tbody.innerHTML = '';
+
+  state.students.forEach((student, index) => {
+    if (!(student.id in state.attendance)) state.attendance[student.id] = true;
+    const present = state.attendance[student.id];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${student.name}</td>
+      <td>${student.phone}</td>
+    `;
+    const tdStatus = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.textContent = present ? 'حاضر' : 'غائب';
+    btn.className = present ? 'present' : 'absent';
+    btn.onclick = () => {
+      state.attendance[student.id] = !present;
+      renderStudents();
+    };
+    tdStatus.appendChild(btn);
+    tr.appendChild(tdStatus);
+    tbody.appendChild(tr);
+  });
+
+  updateCounts();
+}
+
+async function loadCSVData() {
+  const grade = $('#gradeSelect').value.trim();
+  const section = $('#sectionSelect').value.trim();
+  if (!grade || !section) {
+    alert('يرجى اختيار الصف والشعبة');
+    return;
+  }
+
+  try {
+    let combinedText = '';
+    for (const url of SHEET_URLS) {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const text = await res.text();
+      combinedText += text.trim() + '\n';
+    }
+
+    const lines = combinedText.trim().split('\n');
+    state.students = lines.slice(1).map((line, i) => {
+      const cols = line.split(',');
+      return {
+        id: i + 1,
+        phone: cols[0]?.trim() || '',
+        name: cols[1]?.trim() || '',
+        grade: cols[3]?.trim() || '',
+        section: cols[4]?.trim() || ''
+      };
+    }).filter(s => s.grade === grade && s.section === section);
+
+    renderStudents();
+  } catch (err) {
+    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات</td></tr>`;
+    console.error(err);
+  }
+}
+
+function exportToGoogleSheet() {
+  const absents = state.students.filter(s => state.attendance[s.id] === false);
+  if (!absents.length) return alert('لا يوجد غياب لتصديره.');
+  const teacher = $('#teacherName').value.trim() || 'المعلم';
+  const grade = $('#gradeSelect').value;
+  const section = $('#sectionSelect').value;
+  const today = new Date().toLocaleDateString('ar-EG');
+
+  const rows = absents.map((s, i) => ({
+    serial: i + 1,
+    phone: formatPhoneOM(s.phone),
+    name: s.name,
+    message: `ولي أمر الطالب ${s.name}، نعلمكم بغياب ابنكم عن الصف ${grade}/${section} بتاريخ ${today}. — ${teacher}`
+  }));
+
+  fetch(EXPORT_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rows)
+  }).then(() => {
+    alert('✅ تم إرسال الغياب إلى جدول Google بنجاح');
+    location.reload(); // ✅ إعادة تحميل الصفحة
+  }).catch(err => {
+    alert('❌ فشل الإرسال إلى الشيت');
+    console.error(err);
+  });
+}
+
+function formatPhoneOM(raw) {
+  const cleaned = raw.replace(/[^\d]/g, '');
+  if (cleaned.startsWith('968')) return cleaned;
+  if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
+  if (cleaned.length === 8) return '968' + cleaned;
+  return '';
+}
+</script>
+
+</body>
+</html>
