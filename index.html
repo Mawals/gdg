@@ -67,7 +67,14 @@
 </p>
 
 <script>
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv';
+const SHEET_URLS = [
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsMHgkpHsw_8OlvTwfq3GQFiCTcgF0n8oPy2afpeQ2q5ZHV91BYgly9CHGy1wzYQ/pub?gid=531350126&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAXVHqAU0XPZ2poN-EtryQdiODEAmByx-fz9Es_JM5DoidJ3FNCpu_IVSVdGcXrg/pub?gid=1965004906&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxAC2Qsh0jnAV0Qrs4b7ZxkWgnh9snH_4TngJ5WNT8QEA7Il0wJ8oxz1T37fllpg/pub?gid=388215661&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdx4GN1qrst8IxoRG9E9RelbObcUC59WA21kF5ya61ELQzjurGEkTz8l-G1-5ugA/pub?gid=466089221&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRhxB3wo_iW3lWyupDcb7mq0W01lvUYEMXkt35q8kuDF3bu2sBxu0fBGuu2vtOvA/pub?gid=535233421&single=true&output=csv'
+];
 const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv84R9Pb5e9QtXqXKDzc9pNZ2pAJu0N2mxz9HikwwvTaDsufqnMl23lK/exec';
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
@@ -119,10 +126,16 @@ async function loadCSVData() {
   }
 
   try {
-    const res = await fetch(SHEET_URL);
-    if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    const lines = text.trim().split('\n');
+    let combinedText = '';
+    for (const url of SHEET_URLS) {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const text = await res.text();
+      combinedText += text.trim() + '
+';
+    }
+    const lines = combinedText.trim().split('
+');
 
     state.students = lines.slice(1).map((line, i) => {
       const cols = line.split(',');
