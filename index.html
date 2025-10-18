@@ -66,12 +66,7 @@
 </p>
 
 <script>
-const SHEET_URLS = [
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=109732210&single=true&output=csv',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=643103210&single=true&output=csv'
-];
-
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv';
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
@@ -114,47 +109,35 @@ function renderStudents() {
 }
 
 async function loadCSVData() {
-  const grade = $('#gradeSelect').value;
-  const section = $('#sectionSelect').value;
+  const grade = $('#gradeSelect').value.trim();
+  const section = $('#sectionSelect').value.trim();
   if (!grade || !section) {
     alert('يرجى اختيار الصف والشعبة');
     return;
   }
 
-  state.students = [];
+  try {
+    const res = await fetch(SHEET_URL);
+    if (!res.ok) throw new Error('Network error');
+    const text = await res.text();
+    const lines = text.trim().split('\n');
 
-  for (const url of SHEET_URLS) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Network error');
-      const text = await res.text();
-      const lines = text.trim().split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    state.students = lines.slice(1).map((line, i) => {
+      const cols = line.split(',');
+      return {
+        id: i + 1,
+        phone: cols[0]?.trim() || '',
+        name: cols[1]?.trim() || '',
+        grade: cols[3]?.trim() || '',
+        section: cols[4]?.trim() || ''
+      };
+    }).filter(s => s.grade === grade && s.section === section);
 
-      const idIdx = headers.findIndex(h => /^(student_)?id|رقم$/i.test(h));
-      const nameIdx = headers.findIndex(h => /^(student_)?name|name|الاسم$/i.test(h));
-      const phoneIdx = headers.findIndex(h => /^(mobile|phone|الهاتف|جوال)$/i.test(h));
-      const gradeIdx = headers.findIndex(h => /grade|صف/i.test(h));
-      const sectionIdx = headers.findIndex(h => /section|شعبة/i.test(h));
-
-      const students = lines.slice(1).map((line, i) => {
-        const cols = line.split(',');
-        return {
-          id: cols[idIdx] || `id-${i + 1}`,
-          name: cols[nameIdx] || '—',
-          phone: cols[phoneIdx]?.replace(/\s+/g, '') || '—',
-          grade: cols[gradeIdx] || '',
-          section: cols[sectionIdx] || ''
-        };
-      }).filter(s => s.grade == grade && s.section == section);
-
-      state.students.push(...students);
-    } catch (err) {
-      console.error('فشل تحميل:', url);
-    }
+    renderStudents();
+  } catch (err) {
+    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات</td></tr>`;
+    console.error(err);
   }
-
-  renderStudents();
 }
 </script>
 
