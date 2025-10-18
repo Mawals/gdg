@@ -174,4 +174,10 @@ function formatPhoneOM(raw) {
   const cleaned = raw.replace(/[^\d]/g, '');
   if (cleaned.startsWith('968')) return cleaned;
   if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
-  if (cleaned.length === 8) retur
+  if (cleaned.length === 8) return '968' + cleaned;
+  return '';
+}
+</script>
+
+</body>
+</html>
