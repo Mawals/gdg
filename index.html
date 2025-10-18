@@ -1,201 +1,36 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل غياب الطلاب</title>
-  <style>
-    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
-    th { background: #eee; }
-    button, select, input { padding: 6px 12px; margin-left: 10px; border: 1px solid #ccc; border-radius: 6px; }
-    button { cursor: pointer; }
-    .present { background: #16a34a; color: #fff; }
-    .absent { background: #dc2626; color: #fff; }
-    .controls { margin-bottom: 20px; }
-  </style>
-</head>
-<body>
-
-<h2>تسجيل غياب الطلاب من Google Sheets</h2>
-<div class="controls">
-  <label>اسم المعلم: <input type="text" id="teacherName" placeholder="اكتب اسم المعلم"></label>
-  <label>الصف:
-    <select id="gradeSelect">
-      <option value="">اختر</option>
-      <option value="5">الصف الخامس</option>
-      <option value="6">الصف السادس</option>
-      <option value="7">الصف السابع</option>
-      <option value="8">الصف الثامن</option>
-      <option value="9">الصف التاسع</option>
-      <option value="10">الصف العاشر</option>
-      <option value="11">الصف الحادي عشر</option>
-      <option value="12">الصف الثاني عشر</option>
-    </select>
-  </label>
-  <label>الشعبة:
-    <select id="sectionSelect">
-      <option value="">اختر</option>
-      <option value="1">الشعبة 1</option>
-      <option value="2">الشعبة 2</option>
-      <option value="3">الشعبة 3</option>
-      <option value="4">الشعبة 4</option>
-      <option value="5">الشعبة 5</option>
-    </select>
-  </label>
-  <button onclick="loadCSVData()">عرض الطلاب</button>
-  <button onclick="exportAbsentExcel()">📥 تصدير الغياب</button>
-  <button onclick="sendWhatsappMessages()">📤 إرسال واتساب</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>الاسم</th>
-      <th>الهاتف</th>
-      <th>الحالة</th>
-    </tr>
-  </thead>
-  <tbody id="studentsBody">
-    <tr><td colspan="4">بانتظار تحميل البيانات...</td></tr>
-  </tbody>
-</table>
-
-<p>
-  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
-</p>
-
 <script>
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv';
+const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv84R9Pb5e9QtXqXKDzc9pNZ2pAJu0N2mxz9HikwwvTaDsufqnMl23lK/exec';
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
-function updateCounts() {
-  let absent = 0, present = 0;
-  state.students.forEach(s => state.attendance[s.id] === false ? absent++ : present++);
-  $('#absCount').textContent = absent;
-  $('#presCount').textContent = present;
-}
-
-function renderStudents() {
-  const tbody = $('#studentsBody');
-  tbody.innerHTML = '';
-
-  state.students.forEach((student, index) => {
-    if (!(student.id in state.attendance)) {
-      state.attendance[student.id] = true;
-    }
-    const present = state.attendance[student.id];
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${student.name}</td>
-      <td>${student.phone}</td>
-    `;
-    const tdStatus = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.textContent = present ? 'حاضر' : 'غائب';
-    btn.className = present ? 'present' : 'absent';
-    btn.onclick = () => {
-      state.attendance[student.id] = !state.attendance[student.id];
-      renderStudents();
-    };
-    tdStatus.appendChild(btn);
-    tr.appendChild(tdStatus);
-    tbody.appendChild(tr);
-  });
-
-  updateCounts();
-}
-
-async function loadCSVData() {
-  const grade = $('#gradeSelect').value.trim();
-  const section = $('#sectionSelect').value.trim();
-  if (!grade || !section) {
-    alert('يرجى اختيار الصف والشعبة');
-    return;
-  }
-
-  try {
-    const res = await fetch(SHEET_URL);
-    if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    const lines = text.trim().split('\n');
-
-    state.students = lines.slice(1).map((line, i) => {
-      const cols = line.split(',');
-      return {
-        id: i + 1,
-        phone: cols[0]?.trim() || '',
-        name: cols[1]?.trim() || '',
-        grade: cols[3]?.trim() || '',
-        section: cols[4]?.trim() || ''
-      };
-    }).filter(s => s.grade === grade && s.section === section);
-
-    renderStudents();
-  } catch (err) {
-    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات</td></tr>`;
-    console.error(err);
-  }
-}
-
-function exportAbsentExcel() {
+function exportToGoogleSheet() {
   const absents = state.students.filter(s => state.attendance[s.id] === false);
   if (!absents.length) return alert('لا يوجد غياب لتصديره.');
+
   const teacher = $('#teacherName').value.trim() || 'المعلم';
   const grade = $('#gradeSelect').value;
   const section = $('#sectionSelect').value;
   const today = new Date().toLocaleDateString('ar-EG');
 
-  const rows = absents.map((s, i) => [
-    i + 1,
-    formatPhoneOM(s.phone),
-    s.name,
-    `ولي أمر الطالب ${s.name}، نعلمكم بغياب ابنكم عن الصف ${grade}/${section} بتاريخ ${today}. — ${teacher}`
-  ]);
+  const rows = absents.map((s, i) => ({
+    serial: i + 1,
+    phone: formatPhoneOM(s.phone),
+    name: s.name,
+    message: `ولي أمر الطالب ${s.name}، نعلمكم بغياب ابنكم عن الصف ${grade}/${section} بتاريخ ${today}. — ${teacher}`
+  }));
 
-  const csvContent = 'data:text/csv;charset=utf-8,' + [
-    'المسلسل,رقم الهاتف,الاسم,نص الرسالة',
-    ...rows.map(r => r.map(cell => '"' + cell.replace(/"/g, '""') + '"').join(','))
-  ].join('\n');
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `غياب_${grade}-${section}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function sendWhatsappMessages() {
-  const absents = state.students.filter(s => state.attendance[s.id] === false);
-  if (!absents.length) return alert('لا يوجد غياب لإرساله عبر واتساب.');
-  const teacher = $('#teacherName').value.trim() || 'المعلم';
-  const grade = $('#gradeSelect').value;
-  const section = $('#sectionSelect').value;
-  const today = new Date().toLocaleDateString('ar-EG');
-
-  absents.forEach(s => {
-    const phone = formatPhoneOM(s.phone);
-    if (!phone) return;
-    const msg = `السلام عليكم ولي أمر الطالب ${s.name}، نحيطكم علمًا بغياب ابنكم اليوم (${today}) عن الصف ${grade}/${section}. — ${teacher}`;
-    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, '_blank');
+  fetch(EXPORT_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rows)
+  }).then(() => {
+    alert('تم إرسال الغياب إلى جدول Google بنجاح.');
+  }).catch(err => {
+    alert('فشل الإرسال إلى الشيت');
+    console.error(err);
   });
 }
-
-function formatPhoneOM(raw) {
-  const cleaned = raw.replace(/[^\d]/g, '');
-  if (cleaned.startsWith('968')) return cleaned;
-  if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
-  if (cleaned.length === 8) return '968' + cleaned;
-  return '';
-}
 </script>
-
-</body>
-</html>
+<button onclick="exportToGoogleSheet()">📤 إرسال إلى Google Sheets</button>
