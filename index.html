@@ -45,6 +45,8 @@
     </select>
   </label>
   <button onclick="loadCSVData()">عرض الطلاب</button>
+  <button onclick="exportAbsentExcel()">📥 تصدير الغياب</button>
+  <button onclick="sendWhatsappMessages()">📤 إرسال واتساب</button>
 </div>
 
 <table>
@@ -138,6 +140,60 @@ async function loadCSVData() {
     $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات</td></tr>`;
     console.error(err);
   }
+}
+
+function exportAbsentExcel() {
+  const absents = state.students.filter(s => state.attendance[s.id] === false);
+  if (!absents.length) return alert('لا يوجد غياب لتصديره.');
+  const teacher = $('#teacherName').value.trim() || 'المعلم';
+  const grade = $('#gradeSelect').value;
+  const section = $('#sectionSelect').value;
+  const today = new Date().toLocaleDateString('ar-EG');
+
+  const rows = absents.map((s, i) => [
+    i + 1,
+    formatPhoneOM(s.phone),
+    s.name,
+    `ولي أمر الطالب ${s.name}، نعلمكم بغياب ابنكم عن الصف ${grade}/${section} بتاريخ ${today}. — ${teacher}`
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + [
+    'المسلسل,رقم الهاتف,الاسم,نص الرسالة',
+    ...rows.map(r => r.map(cell => '"' + cell.replace(/"/g, '""') + '"').join(','))
+  ].join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `غياب_${grade}-${section}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function sendWhatsappMessages() {
+  const absents = state.students.filter(s => state.attendance[s.id] === false);
+  if (!absents.length) return alert('لا يوجد غياب لإرساله عبر واتساب.');
+  const teacher = $('#teacherName').value.trim() || 'المعلم';
+  const grade = $('#gradeSelect').value;
+  const section = $('#sectionSelect').value;
+  const today = new Date().toLocaleDateString('ar-EG');
+
+  absents.forEach(s => {
+    const phone = formatPhoneOM(s.phone);
+    if (!phone) return;
+    const msg = `السلام عليكم ولي أمر الطالب ${s.name}، نحيطكم علمًا بغياب ابنكم اليوم (${today}) عن الصف ${grade}/${section}. — ${teacher}`;
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+  });
+}
+
+function formatPhoneOM(raw) {
+  const cleaned = raw.replace(/[^\d]/g, '');
+  if (cleaned.startsWith('968')) return cleaned;
+  if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
+  if (cleaned.length === 8) return '968' + cleaned;
+  return '';
 }
 </script>
 
