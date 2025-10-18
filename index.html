@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل غياب الطلبة بمدرسة معولة بن شمس</title>
+  <title>تسجيل غياب الطلبة</title>
   <style>
     body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
     table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
@@ -22,7 +23,7 @@
 <div class="controls">
   <label>اسم المعلم: <input type="text" id="teacherName" placeholder="اكتب اسم المعلم"></label>
   <label>الصف:
-    <select id="gradeSelect" onchange="updateSections()">
+    <select id="gradeSelect">
       <option value="">اختر</option>
       <option value="5">الصف الخامس</option>
       <option value="6">الصف السادس</option>
@@ -35,9 +36,7 @@
     </select>
   </label>
   <label>الشعبة:
-    <select id="sectionSelect">
-      <option value="">اختر</option>
-    </select>
+    <select id="sectionSelect"><option value="">اختر</option></select>
   </label>
   <button onclick="loadCSVData()">عرض الطلاب</button>
   <button onclick="exportToGoogleSheet()">📤 إرسال إلى Google Sheets</button>
@@ -69,6 +68,25 @@ const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
+// الشعب حسب الصف
+const sectionMap = {
+  '5': 3, '6': 3, '7': 3, '8': 3, '9': 3,
+  '10': 4, '11': 6, '12': 5
+};
+
+document.getElementById('gradeSelect').addEventListener('change', () => {
+  const grade = document.getElementById('gradeSelect').value;
+  const sectionSelect = document.getElementById('sectionSelect');
+  sectionSelect.innerHTML = '<option value="">اختر</option>';
+  const count = sectionMap[grade] || 0;
+  for (let i = 1; i <= count; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = 'الشعبة ' + i;
+    sectionSelect.appendChild(option);
+  }
+});
+
 function updateCounts() {
   let absent = 0, present = 0;
   state.students.forEach(s => state.attendance[s.id] === false ? absent++ : present++);
@@ -86,11 +104,7 @@ function renderStudents() {
     }
     const present = state.attendance[student.id];
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${student.name}</td>
-      <td>${student.phone}</td>
-    `;
+    tr.innerHTML = `<td>${index + 1}</td><td>${student.name}</td><td>${student.phone}</td>`;
     const tdStatus = document.createElement('td');
     const btn = document.createElement('button');
     btn.textContent = present ? 'حاضر' : 'غائب';
@@ -177,23 +191,6 @@ function formatPhoneOM(raw) {
   if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
   if (cleaned.length === 8) return '968' + cleaned;
   return '';
-}
-
-function updateSections() {
-  const grade = $('#gradeSelect').value;
-  const sectionSelect = $('#sectionSelect');
-  sectionSelect.innerHTML = '<option value=\"\">اختر</option>';
-  let count = 3;
-  if (grade === '10') count = 4;
-  else if (grade === '11') count = 6;
-  else if (grade === '12') count = 5;
-
-  for (let i = 1; i <= count; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = 'الشعبة ' + i;
-    sectionSelect.appendChild(opt);
-  }
 }
 </script>
 
