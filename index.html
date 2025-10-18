@@ -1,4 +1,210 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<!-- الكود الكامل من المستخدم -->
-...
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل غياب — رابط المعلّم</title>
+  <style>
+    :root{--bg:#0b1320;--card:#0f172a;--muted:#94a3b8;--border:#233044;--text:#e5e7eb;--ok:#16a34a;--warn:#dc2626;--accent:#60a5fa}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1320,#0d172a);color:var(--text);font-family:"Tajawal",system-ui,Segoe UI,Roboto,sans-serif}
+    .app{max-width:1100px;margin:24px auto;padding:16px}
+    header{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+    .brand{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .brand h1{font-size:20px;margin:0}
+    .badge{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:12px}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:160px}
+    label{font-size:12px;color:var(--muted)}
+    select,input,button{background:#0b1220;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px}
+    button{cursor:pointer}
+    button.primary{background:#0e1628;display:inline-flex;gap:8px;align-items:center}
+    button.primary svg{flex:0 0 auto}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:right;padding:10px}
+    tbody tr{background:#0b1220;border:1px solid var(--border)}
+    tbody tr td:first-child{border-radius:10px 0 0 10px}
+    tbody tr td:last-child{border-radius:0 10px 10px 0}
+    .toggle{position:relative;width:62px;height:30px;border-radius:999px;border:1px solid #334155;background:#172036;cursor:pointer;display:inline-flex;align-items:center}
+    .knob{position:absolute;top:3px;bottom:3px;width:24px;border-radius:999px;background:#e5e7eb;transition:.2s}
+    .toggle[data-on="true"]{background:#064e3b;border-color:#14532d}
+    .toggle[data-on="true"] .knob{right:4px}
+    .toggle[data-on="false"] .knob{right:34px}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3l9 6-9 6-9-6 9-6z" stroke="#60a5fa" stroke-width="1.5"/><path d="M3 12l9 6 9-6" stroke="#60a5fa" stroke-opacity=".5"/>
+          </svg>
+          <h1>تسجيل غياب — رابط المعلّم</h1>
+        </div>
+        <div class="badge">المعلّم: <strong id="tname">—</strong><span id="tid" style="margin-right:6px"></span></div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:6px">
+        <div class="field" style="min-width:220px">
+          <label>اسم المعلّم</label>
+          <input id="teacherNameInput" placeholder="اكتب اسمك" />
+        </div>
+        <div class="field" style="min-width:160px">
+          <label>معرّف المعلّم (اختياري)</label>
+          <input id="teacherIdInput" placeholder="مثال: t01" />
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div class="field">
+          <label>اختر الصف</label>
+          <select id="gradeSelect">
+            <option value="">—</option>
+            <option value="5" selected>الصف 5</option>
+            <option value="6">الصف 6</option>
+            <option value="7">الصف 7</option>
+            <option value="8">الصف 8</option>
+            <option value="9">الصف 9</option>
+            <option value="10">الصف 10</option>
+            <option value="11">الصف 11</option>
+            <option value="12">الصف 12</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>اختر الشعبة</label>
+          <select id="sectionSelect">
+            <option value="">—</option>
+            <option value="1" selected>الشعبة 1</option>
+            <option value="2">الشعبة 2</option>
+            <option value="3">الشعبة 3</option>
+            <option value="4">الشعبة 4</option>
+          </select>
+        </div>
+
+        <!-- زر واضح لعرض الأسماء يدويًا + التحميل التلقائي موجود أيضًا -->
+        <div class="field" style="min-width:220px">
+          <label class="muted">عرض الأسماء</label>
+          <button id="loadBtn" class="primary" title="عرض الأسماء">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12s4-8 9-8 9 8 9 8-4 8-9 8-9-8-9-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            عرض الأسماء
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;color:var(--muted)">
+        <div>التاريخ: <strong id="today"></strong></div>
+        <div>الحضور الافتراضي: حاضر</div>
+        <div>الغائبون: <strong id="absCount" style="color:var(--warn)">0</strong></div>
+        <div>الحاضرون: <strong id="presCount" style="color:var(--ok)">0</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>القائمة</div>
+        <div style="display:flex;gap:8px">
+          <button id="markAllPresent">الجميع حاضر</button>
+          <button id="markAllAbsent">الجميع غائب</button>
+        </div>
+      </div>
+      <table style="margin-top:10px">
+        <thead><tr><th>#</th><th>اسم الطالب</th><th>الهاتف</th><th>الحالة</th></tr></thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button id="btnExportAdmin">تنزيل CSV (الغائبون)</button>
+        <button id="btnWhatsapp">واتساب لأولياء الأمور</button>
+      </div>
+      <div id="diag" class="muted" style="margin-top:10px;font-size:12px"></div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // إعدادات
+  const DEFAULT_GRADE='5', DEFAULT_SECTION='1', CLASSES_DIR='classes';
+  const FILES=[
+    f=>`${CLASSES_DIR}/classes_from_${f.g}-${f.s}_QA.json`,
+    f=>`${CLASSES_DIR}/classes_from_${f.g}-${f.s}.json`,
+    f=>`${CLASSES_DIR}/${f.g}-${f.s}.json`
+  ];
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  const state={classes:[],attendance:{},grade:null,section:null};
+  const toEn=v=>String(v||'').replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).trim();
+  const diag=$('#diag');
+
+  // اليوم
+  $('#today').textContent=new Intl.DateTimeFormat('ar',{dateStyle:'full'}).format(new Date());
+
+  // اسم المعلّم
+  const nameInp=$('#teacherNameInput'), idInp=$('#teacherIdInput'), tname=$('#tname'), tid=$('#tid');
+  nameInp.addEventListener('input',()=>tname.textContent=nameInp.value.trim()||'—');
+  idInp.addEventListener('input',()=>tid.textContent=idInp.value.trim()?`(${idInp.value.trim()})`:'');
+  const params=new URLSearchParams(location.search);
+  if(params.get('teacher_name')) nameInp.value=params.get('teacher_name');
+  if(params.get('teacher_id')) idInp.value=params.get('teacher_id');
+  tname.textContent=nameInp.value||'—'; tid.textContent=idInp.value?`(${idInp.value})`:'';
+
+  function normalize(obj,g,s){
+    if(Array.isArray(obj)){
+      if(obj[0]?.students) return obj;
+      return[{grade:g,section:s,students:obj.map((x,i)=>({
+        id:x.id||x.student_id||`${g}-${s}-${i+1}`,
+        name:(x.name||x.student_name||'').toString().trim(),
+        phone:String(x.phone||'').trim()
+      }))}];
+    }
+    return[];
+  }
+  const students=()=> state.classes[0]?.students||[];
+  function updateCount(){let p=0,a=0;for(const s of students())(state.attendance[s.id]===false?a:p)++;$('#absCount').textContent=a;$('#presCount').textContent=p;}
+  function render(){
+    const body=$('#studentsBody'); body.innerHTML='';
+    students().forEach((s,i)=>{
+      if(!(s.id in state.attendance)) state.attendance[s.id]=true;
+      const on=!!state.attendance[s.id];
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${i+1}</td><td>${s.name}</td><td>${s.phone||'<span class="muted">—</span>'}</td>
+      <td><div class="toggle" data-on="${on}" data-id="${s.id}"><div class="knob"></div></div></td>`;
+      body.appendChild(tr);
+    });
+    $$('#studentsBody .toggle').forEach(el=>el.onclick=()=>{
+      const id=el.dataset.id; const on=el.dataset.on==='true';
+      state.attendance[id]=!on; el.dataset.on=String(!on);
+      const knob=el.querySelector('.knob'); if(knob) knob.style.right = (!on?'4px':'34px');
+      updateCount();
+    });
+    updateCount();
+  }
+
+  async function load(){
+    const g=toEn($('#gradeSelect').value), s=toEn($('#sectionSelect').value);
+    if(!g||!s){ $('#studentsBody').innerHTML='<tr><td colspan="4" class="muted">اختر الصف والشعبة لعرض الأسماء.</td></tr>'; updateCount(); return; }
+    state.grade=g; state.section=s;
+    const tried=[]; let ok=false;
+    for(const f of FILES){
+      const url=f({g,s}); tried.push(url);
+      try{ const r=await fetch(url,{cache:'no-store'}); if(!r.ok) continue;
+        const j=await r.json(); state.classes=normalize(j,g,s); state.attendance={}; render(); ok=true; diag.textContent=`تم التحميل من: ${url}`; break;
+      }catch(e){ /* جرّب التالي */ }
+    }
+    if(!ok){ $('#studentsBody').innerHTML=`<tr><td colspan="4" style="color:#fca5a5">لم أجد ملف هذا الصف/الشعبة داخل ${CLASSES_DIR}.</td></tr>`; diag.innerHTML=`<div>جربت:</div><code>${tried.join('</code><br><code>')}</code>`; updateCount(); }
+  }
+
+  // زر الأيقونة “عرض الأسماء”
+  $('#loadBtn').onclick=load;
+
+  // التحميل التلقائي عند تغيير الصف/الشعبة
+  $('#gradeSelect').addEventListener('change',load);
+  $('#sectionSelect').addEventListener('change',load);
+
+  // تحميل 5/1 تلقائيًا عند الفتح
+  $('#gradeSelect').value='5'; $('#sectionSelect').value='1'; load();
+});
+</script>
+</body>
+</html>
