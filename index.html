@@ -184,6 +184,28 @@ function formatPhoneOM(raw) {
   return '';
 }
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const sectionMap = {
+    '5': 3, '6': 3, '7': 3, '8': 3, '9': 3,
+    '10': 4, '11': 5, '12': 6
+  };
+  const gradeSelect = document.getElementById('gradeSelect');
+  const sectionSelect = document.getElementById('sectionSelect');
+
+  gradeSelect.addEventListener('change', () => {
+    const grade = gradeSelect.value;
+    const count = sectionMap[grade] || 0;
+    sectionSelect.innerHTML = '<option value="">اختر</option>';
+    for (let i = 1; i <= count; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `الشعبة ${i}`;
+      sectionSelect.appendChild(opt);
+    }
+  });
+});
+</script>
 
 </body>
 </html>
