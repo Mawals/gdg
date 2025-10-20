@@ -15,10 +15,10 @@
     .present { background: #16a34a; color: #fff; }
     .absent { background: #dc2626; color: #fff; }
     .controls { margin-bottom: 20px; }
-  </style>
+  
+.hide-phone { display: none; }</style>
 </head>
-<body>
-<div style="position: absolute; top: 10px; left: 10px; font-size: 13px; color: #555;">تصميم / سيف جمال المعولي</div>
+<body><div style="position: absolute; top: 10px; left: 10px; font-size: 14px; color: #555; font-family: sans-serif;">تصميم / سيف جمال المعولي</div>
 <h2>تسجيل غياب الطلبة بمدرسة معولة بن شمس</h2>
 <div class="controls">
 <label>اسم المعلم: <input id="teacherName" placeholder="اكتب اسم المعلم" type="text"/></label>
@@ -41,7 +41,7 @@
 </select>
 </label>
 <button onclick="loadCSVData()">عرض الطلاب</button>
-<button onclick="exportToGoogleSheet()">📤 إرسال إلى Google Sheets</button>
+<button onclick="exportToGoogleSheet()">📤 إرسال</button>
 </div>
 <table>
 <thead>
@@ -174,9 +174,9 @@ function exportToGoogleSheet() {
 
 function formatPhoneOM(raw) {
   const cleaned = raw.replace(/[^\d]/g, '');
-  if (cleaned.startsWith('968')) return cleaned;
+  if (cleaned.startsWith('968')) return '' + cleaned;
   if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
-  if (cleaned.length === 8) return '968' + cleaned;
+  if (cleaned.length === 8) return '' + cleaned;
   return '';
 }
 
@@ -197,6 +197,5 @@ function updateSections() {
   }
 }
 </script>
-<div style="position: fixed; bottom: 10px; left: 10px; font-size: 13px; color: #555;">تصميم / سيف جمال المعولي</div>
 </body>
 </html>
