@@ -21,7 +21,7 @@
 <body><div style="position: absolute; top: 10px; left: 10px; font-size: 14px; color: #555; font-family: sans-serif;">تصميم / سيف جمال المعولي</div>
 <h2>تسجيل غياب الطلبة بمدرسة معولة بن شمس</h2>
 <div class="controls">
-<label>اسم المعلم: <input id="المعلم:teacherName" placeholder="اكتب اسم المعلم" type="text"/></label>
+<label>اسم المعلم: <input id="teacherName" placeholder="اكتب اسم المعلم" type="المعلم:text"/></label>
 <label>الصف:
     <select id="gradeSelect" onchange="updateSections()">
 <option value="">اختر</option>
@@ -165,6 +165,7 @@ function exportToGoogleSheet() {
     alert('✅ تم إرسال الغياب إلى جدول Google بنجاح');
     // إعادة تعيين الصفحة بعد الإرسال
     location.reload();
+  }).catch(err => {
     alert('❌ فشل الإرسال إلى الشيت');
     console.error(err);
   });
