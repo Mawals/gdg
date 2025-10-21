@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>تسجيل غياب الطلبة بمدرسة معولة بن شمس</title>
+<title>تسجيل غياب الطلبة بمدرسة آسية بنت مزاحم </title>
 <style>
     body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
     table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
@@ -15,11 +15,11 @@
     .present { background: #16a34a; color: #fff; }
     .absent { background: #dc2626; color: #fff; }
     .controls { margin-bottom: 20px; }
-  
-.hide-phone { display: none; }</style>
+  </style>
 </head>
-<body><div style="position: absolute; top: 10px; left: 10px; font-size: 14px; color: #555; font-family: sans-serif;">تصميم / سيف جمال المعولي</div>
-<h2>تسجيل غياب الطلبة بمدرسة معولة بن شمس</h2>
+<body>
+<div style="position: absolute; top: 10px; left: 10px; font-size: 13px; color: #555;">تصميم / سيف جمال المعولي</div>
+<h2>تسجيل غياب الطلبة بمدرسة آسية بنت مزاحم</h2>
 <div class="controls">
 <label>اسم المعلم: <input id="teacherName" placeholder="اكتب اسم المعلم" type="text"/></label>
 <label>الصف:
@@ -41,7 +41,7 @@
 </select>
 </label>
 <button onclick="loadCSVData()">عرض الطلاب</button>
-<button onclick="exportToGoogleSheet()">📤 إرسال</button><button id="noAbsenceBtn" style="background-color: #f44336; color: white; margin-right: 10px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;" type="button">🚫 لا يوجد غياب</button>
+<button onclick="exportToGoogleSheet()">📤 إرسال إلى Google Sheets</button>
 </div>
 <table>
 <thead>
@@ -61,9 +61,9 @@
 </p>
 <script>
 const SHEET_URLS = [
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv'
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2UZiEif_61URUco08HBhbHRcQoZmD5R3gwCgHel50t4ltWToPHV84DC4zPgxjFA/pub?gid=626465739&single=true&output=csv'
 ];
-const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv84R9Pb5e9QtXqXKDzc9pNZ2pAJu0N2mxz9HikwwvTaDsufqnMl23lK/exec';
+const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby6oN2AGVUfJFg03Kywwl7ZHEdoLBvF4KchZLwOIt0qstuQ15u4hrXY0ANWDCOTrN5xFg/exec';
 const $ = selector => document.querySelector(selector);
 const state = { students: [], attendance: {} };
 
@@ -174,9 +174,9 @@ function exportToGoogleSheet() {
 
 function formatPhoneOM(raw) {
   const cleaned = raw.replace(/[^\d]/g, '');
-  if (cleaned.startsWith('968')) return '' + cleaned;
+  if (cleaned.startsWith('968')) return cleaned;
   if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
-  if (cleaned.length === 8) return '' + cleaned;
+  if (cleaned.length === 8) return '968' + cleaned;
   return '';
 }
 
@@ -197,36 +197,42 @@ function updateSections() {
   }
 }
 </script>
-<script>
-document.getElementById("noAbsenceBtn").addEventListener("click", function () {
-  const teacher = document.getElementById("teacherName").value.trim();
-  const grade = document.getElementById("gradeSelect").value;
-  const section = document.getElementById("sectionSelect").value;
-  if (!teacher || !grade || !section) {
-    alert("يرجى إدخال اسم المعلم واختيار الصف والشعبة أولاً.");
-    return;
+<div style="position: fixed; bottom: 10px; left: 10px; font-size: 13px; color: #555;">تصميم / سيف جمال المعولي</div>
+<button id="noAbsenceBtn" style="background-color: #f44336; color: white; margin-top: 15px; margin-right: 10px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;" type="button">🚫 لا يوجد غياب</button><script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("noAbsenceBtn");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      const teacher = document.getElementById("teacherName").value.trim();
+      const grade = document.getElementById("gradeSelect").value;
+      const section = document.getElementById("sectionSelect").value;
+      if (!teacher || !grade || !section) {
+        alert("يرجى إدخال اسم المعلم واختيار الصف والشعبة أولاً.");
+        return;
+      }
+
+      const today = new Date().toLocaleDateString('ar-EG');
+      const payload = [{
+        serial: "-",
+        phone: "-",
+        name: "-",
+        message: `المعلم: ${teacher}\nالصف: ${grade}\nالشعبة: ${section}\nلا يوجد غياب في هذا الصف بتاريخ ${today}`
+      }];
+
+      fetch(EXPORT_WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        alert('✅ تم إرسال إشعار عدم وجود غياب بنجاح');
+        location.reload();
+      }).catch(err => {
+        alert('❌ فشل في إرسال إشعار عدم وجود غياب');
+        console.error(err);
+      });
+    });
   }
-
-  const today = new Date().toLocaleDateString('ar-EG');
-  const payload = [{
-    serial: "-",
-    phone: "-",
-    name: "-",
-    message: `المعلم: ${teacher}\nالصف: ${grade}\nالشعبة: ${section}\nلا يوجد غياب في هذا الصف بتاريخ ${today}`
-  }];
-
-  fetch(EXPORT_WEBAPP_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).then(() => {
-    alert('✅ تم إرسال إشعار عدم وجود غياب بنجاح');
-    location.reload();
-  }).catch(err => {
-    alert('❌ فشل في إرسال إشعار عدم وجود غياب');
-    console.error(err);
-  });
 });
 </script></body>
 </html>
