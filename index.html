@@ -13,6 +13,10 @@
   <!-- استدعاء Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // ألوان قابلة للتبديل: تُقرأ من متغيرات CSS حسب اللون المختار
+    const shades = n => Object.fromEntries([50,100,200,300,400,500,600,700,800,900,950].map(s => [s, `rgb(var(--${n}-${s}) / <alpha-value>)`]));
+    // تطبيق اللون المحفوظ قبل رسم الصفحة (الذهبي افتراضي)
+    (function(){ let c = 'gold'; try { c = localStorage.getItem('atad_color') || 'gold'; } catch(e){} document.documentElement.setAttribute('data-color', c); })();
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -23,7 +27,9 @@
           colors: {
             obsidian: '#0c0a09',
             charcoal: '#1c1917',
-            sand: '#faf8f5',
+            sand: 'rgb(var(--sand) / <alpha-value>)',
+            amber: shades('amber'),
+            orange: shades('orange'),
           }
         }
       }
@@ -31,6 +37,15 @@
   </script>
 
   <style>
+    html[data-color="gold"]{--amber-50:255 251 235;--amber-100:254 243 199;--amber-200:246 224 150;--amber-300:238 203 90;--amber-400:230 182 38;--amber-500:212 160 23;--amber-600:184 134 11;--amber-700:146 104 9;--amber-800:115 82 11;--amber-900:92 66 12;--amber-950:54 38 6;--orange-50:253 248 234;--orange-100:250 236 200;--orange-200:240 214 150;--orange-300:226 186 92;--orange-400:206 156 46;--orange-500:190 138 22;--orange-600:161 112 10;--orange-700:130 89 9;--orange-800:102 70 10;--orange-900:82 57 11;--orange-950:48 33 6;--sand:253 250 240}
+    html[data-color="emerald"]{--amber-50:236 253 245;--amber-100:209 250 229;--amber-200:167 243 208;--amber-300:110 231 183;--amber-400:52 211 153;--amber-500:16 185 129;--amber-600:5 150 105;--amber-700:4 120 87;--amber-800:6 95 70;--amber-900:6 78 59;--amber-950:2 44 34;--orange-50:240 253 250;--orange-100:204 251 241;--orange-200:153 246 228;--orange-300:94 234 212;--orange-400:45 212 191;--orange-500:20 184 166;--orange-600:13 148 136;--orange-700:15 118 110;--orange-800:17 94 89;--orange-900:19 78 74;--orange-950:4 47 46;--sand:243 251 247}
+    html[data-color="royal"]{--amber-50:239 246 255;--amber-100:219 234 254;--amber-200:191 219 254;--amber-300:147 197 253;--amber-400:96 165 250;--amber-500:59 130 246;--amber-600:37 99 235;--amber-700:29 78 216;--amber-800:30 64 175;--amber-900:30 58 138;--amber-950:23 37 84;--orange-50:238 242 255;--orange-100:224 231 255;--orange-200:199 210 254;--orange-300:165 180 252;--orange-400:129 140 248;--orange-500:99 102 241;--orange-600:79 70 229;--orange-700:67 56 202;--orange-800:55 48 163;--orange-900:49 46 129;--orange-950:30 27 75;--sand:243 246 253}
+    html[data-color="violet"]{--amber-50:245 243 255;--amber-100:237 233 254;--amber-200:221 214 254;--amber-300:196 181 253;--amber-400:167 139 250;--amber-500:139 92 246;--amber-600:124 58 237;--amber-700:109 40 217;--amber-800:91 33 182;--amber-900:76 29 149;--amber-950:46 16 101;--orange-50:250 245 255;--orange-100:243 232 255;--orange-200:233 213 255;--orange-300:216 180 254;--orange-400:192 132 252;--orange-500:168 85 247;--orange-600:147 51 234;--orange-700:126 34 206;--orange-800:107 33 168;--orange-900:88 28 135;--orange-950:59 7 100;--sand:248 245 254}
+    html[data-color="dark"]{--amber-50:255 251 235;--amber-100:254 243 199;--amber-200:253 230 138;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:217 119 6;--amber-700:180 83 9;--amber-800:146 64 14;--amber-900:120 53 15;--amber-950:69 26 3;--orange-50:255 247 237;--orange-100:255 237 213;--orange-200:254 215 170;--orange-300:253 186 116;--orange-400:251 146 60;--orange-500:249 115 22;--orange-600:234 88 12;--orange-700:194 65 12;--orange-800:154 52 18;--orange-900:124 45 18;--orange-950:67 20 7;--sand:250 248 245}
+    .color-dot { width: 18px; height: 18px; border-radius: 999px; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(120,113,108,.35); transition: transform .15s; }
+    .dark .color-dot { border-color: #1c1917; }
+    .color-dot:hover { transform: scale(1.18); }
+    .color-dot.on { box-shadow: 0 0 0 2px rgb(var(--amber-600)); }
     body {
       font-family: 'Cairo', sans-serif;
       overflow-x: hidden;
@@ -54,10 +69,10 @@
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .tab-btn.active {
-      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      background: linear-gradient(135deg, rgb(var(--amber-500)), rgb(var(--orange-600)));
       color: #ffffff;
       border-color: transparent;
-      box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
+      box-shadow: 0 10px 25px -5px rgb(var(--orange-600) / 0.4);
     }
     .tab-btn.done:not(.active) {
       border-color: rgba(16, 185, 129, 0.5);
@@ -112,8 +127,8 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-black text-lg sm:text-xl tracking-tight text-stone-900 dark:text-white">مُصدِّر عهدة المختبر</h1>
-            <span id="ver" class="px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+            <h1 class="font-black text-base sm:text-xl tracking-tight whitespace-nowrap text-stone-900 dark:text-white">مُصدِّر عهدة المختبر</h1>
+            <span id="ver" class="shrink-0 whitespace-nowrap px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
               الإصدار …
             </span>
           </div>
@@ -129,8 +144,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span>التثبيت اليدوي والفنيين</span>
+          <span class="hidden sm:inline">التثبيت اليدوي والفنيين</span>
         </button>
+
+        <!-- اختيار اللون -->
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700" id="colorDots">
+          <span class="color-dot" data-c="gold" title="ذهبي" style="background:#d4a017"></span>
+          <span class="color-dot" data-c="emerald" title="زمردي" style="background:#10b981"></span>
+          <span class="color-dot" data-c="royal" title="ملكي" style="background:#1e40af"></span>
+          <span class="color-dot" data-c="violet" title="بنفسجي" style="background:#8b5cf6"></span>
+          <span class="color-dot" data-c="dark" title="داكن" style="background:#1c1917"></span>
+        </div>
 
         <!-- تبديل النمط -->
         <button onclick="toggleTheme()" aria-label="تغيير المظهر" class="p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700 transition-all">
@@ -147,24 +171,28 @@
   </header>
 
   <!-- مساحة العمل الرئيسية (Bento Split-Screen Layout) -->
-  <main class="max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex-1">
+  <main class="max-w-3xl w-full mx-auto px-4 sm:px-6 py-5 flex-1">
     
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-4">
 
       <!-- العمود الأيمن: بطاقة الهوية + محاكي الأداة + الإنجاز (5 أعمدة) -->
       <div class="contents">
         
         <!-- بطاقة الملخص الفاخرة (Dark Obsidian Card) -->
-        <div class="order-1 rounded-3xl bg-stone-900 dark:bg-charcoal text-white p-6 sm:p-7 border border-stone-800 shadow-2xl relative overflow-hidden">
-          <div class="absolute -left-10 -bottom-10 w-44 h-44 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-          <div class="flex items-center justify-between gap-4 mb-5">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg">
-              ⚡ أتمتة شاملة
-            </span>
+        <div class="order-1 rounded-3xl bg-stone-900 dark:bg-charcoal text-white p-4 sm:p-5 border border-stone-800 shadow-xl relative overflow-hidden">
+          <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="relative flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <h2 class="text-base sm:text-lg font-black leading-snug">
+                استخرج عهدة المختبر كاملة في <span class="text-amber-400">ملف Excel واحد</span>
+              </h2>
+              <p class="text-stone-400 text-xs sm:text-[13px] leading-relaxed mt-1">
+                تمر الأداة آليًا على كل الأنواع والفروع والصفحات في «عتاد»، مع تقرير بالفروع التي لم تُنزَّل.
+              </p>
+            </div>
 
             <!-- عداد التقدم الدائري -->
-            <div class="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-2xl border border-white/10">
+            <div class="shrink-0 flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-2xl border border-white/10">
               <div class="relative w-9 h-9 flex items-center justify-center">
                 <svg class="w-9 h-9" viewBox="0 0 36 36">
                   <circle cx="18" cy="18" r="15" fill="none" class="stroke-stone-700" stroke-width="3.5"></circle>
@@ -172,57 +200,30 @@
                 </svg>
                 <span id="ringText" class="absolute text-[10px] font-black text-white">0%</span>
               </div>
-              <div class="text-right">
+              <div class="text-right hidden sm:block">
                 <p class="text-[11px] text-stone-400 leading-none">جاهزية التثبيت</p>
                 <p id="statusLabel" class="text-xs font-bold text-amber-300 mt-0.5">غير مكتمل</p>
               </div>
             </div>
           </div>
-
-          <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3">
-            استخرج عهدة المختبر كاملة في <span class="text-amber-400 underline decoration-amber-500/40 decoration-wavy underline-offset-8">ملف Excel واحد</span>
-          </h2>
-
-          <p class="text-stone-300 text-sm leading-relaxed mb-6">
-            تفتح الأداة نظام «عتاد» وتمر آليًا على جميع الأنواع الرئيسية والفرعية وكافة الصفحات، وتجمعها مع تقرير مفصّل بالفروع التي لم تُنزَّل.
-          </p>
-
-          <!-- محاكاة بصرية مصغرة لشكل لوحة الأداة داخل البوابة -->
-          <div class="rounded-2xl bg-stone-950/90 border border-stone-800 p-4">
-            <div class="flex items-center justify-between text-xs text-stone-400 pb-2.5 mb-3 border-b border-stone-800">
-              <span class="font-bold text-stone-200 flex items-center gap-1.5">
-                <span>📦</span>
-                <span>معاينة لوحة الأداة داخل البوابة</span>
-              </span>
-              <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">تعمل تلقائيًا</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 text-xs">
-              <div class="space-y-1">
-                <div class="text-stone-400">الحالة: <span class="text-white font-bold">جاهز للفحص والتصدير</span></div>
-                <div class="text-stone-500 text-[11px]">انتظار عتاد: 120 ثانية • شامل الفروع</div>
-              </div>
-              <span class="px-3 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-black text-xs shrink-0 shadow">
-                ▶️ ابدأ
-              </span>
-            </div>
-          </div>
         </div>
 
         <!-- بطاقة معلومات المصمم + إعادة الضبط -->
-        <div class="order-3 rounded-2xl bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 p-4 px-5 flex items-center justify-between shadow-sm">
+        <div class="order-3 relative rounded-2xl bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 p-4 px-5 flex items-center justify-center shadow-sm">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
               </svg>
             </div>
-            <div>
+            <div class="text-center">
               <p class="text-xs text-stone-400">تصميم وتطوير</p>
-              <p class="text-sm font-extrabold text-stone-800 dark:text-stone-100">سيف جمال المعولي <span class="text-xs font-normal text-stone-500">• معولة بن شمس (5-12)</span></p>
+              <p class="text-sm font-extrabold text-stone-800 dark:text-stone-100">سيف جمال المعولي</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">معولة بن شمس (5-12)</p>
             </div>
           </div>
 
-          <button id="resetBtn" onclick="resetProgress()" class="hidden text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline px-2 py-1">
+          <button id="resetBtn" onclick="resetProgress()" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline px-2 py-1">
             إعادة ضبط
           </button>
         </div>
@@ -485,6 +486,20 @@
       try { localStorage.setItem('atad_theme', isDark ? 'dark' : 'light'); } catch (e) {}
     }
 
+    // اختيار اللون (ذهبي افتراضي). «داكن» يفعّل الوضع الليلي، والألوان الأخرى ترجع للنهاري
+    function setColor(c, fromClick) {
+      document.documentElement.setAttribute('data-color', c);
+      try { localStorage.setItem('atad_color', c); } catch (e) {}
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('on', d.dataset.c === c));
+      if (fromClick) {
+        const dark = c === 'dark';
+        document.documentElement.classList.toggle('dark', dark);
+        try { localStorage.setItem('atad_theme', dark ? 'dark' : 'light'); } catch (e) {}
+      }
+    }
+    document.querySelectorAll('.color-dot').forEach(d => d.addEventListener('click', () => setColor(d.dataset.c, true)));
+    setColor(document.documentElement.getAttribute('data-color') || 'gold', false);
+
     // التبديل بين تبويبات المعالج (Wizard Tabs)
     function switchTab(num) {
       [1, 2, 3].forEach(i => {
@@ -619,7 +634,7 @@
         if (m) document.getElementById('ver').textContent = 'الإصدار ' + m[1];
       })
       .catch(() => {
-        document.getElementById('ver').textContent = 'جاهز للتثبيت';
+        document.getElementById('ver').style.display = 'none';
       });
 
     // نسخ الكود للحافظة

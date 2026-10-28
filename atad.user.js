@@ -4,7 +4,7 @@
 // @author       سيف جمال المعولي
 // @updateURL    https://mawals.github.io/gdg/atad.user.js
 // @downloadURL  https://mawals.github.io/gdg/atad.user.js
-// @version      3.7
+// @version      3.9
 // @description  أعمالي ← عتاد ← المدارس ← المدرسة ← تقارير المختبر ← عهدة الأصناف المخبرية، ثم يمر على كل نوع رئيسي وفرعي وكل الصفحات ويجمعها في Excel واحد (أو يضغط زر التصدير لكل صفحة)
 // @match        *://*.moe.gov.om/*
 // @include      /^https?:\/\/([^\/]*\.)?moe\.gov\.om(:\d+)?\/.*$/
@@ -62,275 +62,107 @@
     document.head.appendChild(link);
   }
 
+  // ================= الألوان (السمات) =================
+  const THEMEK = 'atad2_theme';
+  const THEMES = {
+    gold:    { name: 'ذهبي',   dot: '#d4a017', v: '--bg:linear-gradient(160deg,#fffbeb 0%,#fbecc0 100%);--solid:#fff8e1;--box:#fffdf6;--line:#ead08a;--ink:#3d2c05;--muted:#8b6b1f;--a1:#e8b923;--a2:#b8860b;--aink:#ffffff;--hi:#a16207;--glow:rgba(212,160,23,.35);--soft:rgba(232,185,35,.15);--btn:#fbefc8;--stop:#be123c' },
+    emerald: { name: 'زمردي',  dot: '#10b981', v: '--bg:linear-gradient(160deg,#f0fdf8 0%,#ccf5e3 100%);--solid:#f2fdf8;--box:#fbfffd;--line:#9fdcc2;--ink:#053d2f;--muted:#3f7f68;--a1:#10b981;--a2:#047857;--aink:#ffffff;--hi:#047857;--glow:rgba(16,185,129,.3);--soft:rgba(16,185,129,.12);--btn:#dcf6ea;--stop:#be123c' },
+    royal:   { name: 'ملكي',   dot: '#1e40af', v: '--bg:linear-gradient(160deg,#1e3a8a 0%,#172554 100%);--solid:#1b2f6e;--box:rgba(255,255,255,.07);--line:rgba(255,255,255,.16);--ink:#f1f5ff;--muted:#b4c2ee;--a1:#fcd34d;--a2:#f59e0b;--aink:#1e1b4b;--hi:#fcd34d;--glow:rgba(252,211,77,.3);--soft:rgba(252,211,77,.12);--btn:rgba(255,255,255,.1);--stop:#fda4af' },
+    violet:  { name: 'بنفسجي', dot: '#8b5cf6', v: '--bg:linear-gradient(160deg,#faf5ff 0%,#e9ddfd 100%);--solid:#fbf8ff;--box:#fdfcff;--line:#d6c4f6;--ink:#33105e;--muted:#7a5aa6;--a1:#a855f7;--a2:#7c3aed;--aink:#ffffff;--hi:#7c3aed;--glow:rgba(139,92,246,.3);--soft:rgba(168,85,247,.12);--btn:#efe6fd;--stop:#be123c' },
+    dark:    { name: 'داكن',   dot: '#1c1917', v: '--bg:#1c1917;--solid:#1c1917;--box:#0c0a09;--line:#292524;--ink:#f5f5f4;--muted:#a8a29e;--a1:#f59e0b;--a2:#ea580c;--aink:#0c0a09;--hi:#fbbf24;--glow:rgba(245,158,11,.16);--soft:rgba(245,158,11,.1);--btn:#292524;--stop:#fda4af' },
+  };
+  const curTheme = () => (THEMES[GM_getValue(THEMEK, 'gold')] ? GM_getValue(THEMEK, 'gold') : 'gold');
+  if (!document.getElementById('ax-themes-css')) {
+    const st = document.createElement('style');
+    st.id = 'ax-themes-css';
+    st.textContent = Object.entries(THEMES).map(([k, t]) => `[data-axt="${k}"]{${t.v}}`).join('\n');
+    document.head.appendChild(st);
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ax-panel';
   panel.dir = 'rtl';
+  panel.setAttribute('data-axt', curTheme());
   panel.innerHTML = `
     <style>
       #ax-panel {
-        position: fixed;
-        bottom: 18px;
-        left: 18px;
-        z-index: 2147483647;
-        background: #1c1917;
-        color: #f5f5f4;
-        border: 1px solid #292524;
-        border-radius: 22px;
-        padding: 15px;
-        width: 300px;
-        font-family: 'Cairo', Tahoma, Arial, sans-serif;
-        font-size: 12.5px;
-        box-shadow: 0 22px 45px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(245,158,11,0.16);
-        overflow: hidden;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        line-height: 1.5;
-        box-sizing: border-box;
+        position: fixed; bottom: 18px; left: 18px; z-index: 2147483647;
+        background: var(--bg); color: var(--ink);
+        border: 1px solid var(--line); border-radius: 22px;
+        padding: 15px; width: 320px;
+        font-family: 'Cairo', Tahoma, Arial, sans-serif; font-size: 12.5px; line-height: 1.5;
+        box-shadow: 0 22px 45px -12px rgba(0,0,0,.35), 0 0 0 1px var(--glow);
+        overflow: hidden; box-sizing: border-box; transition: background .3s, color .3s;
       }
       #ax-panel * { box-sizing: border-box; font-family: 'Cairo', Tahoma, Arial, sans-serif; }
       #ax-panel::before {
-        content: "";
-        position: absolute;
-        top: -50px;
-        left: -50px;
-        width: 130px;
-        height: 130px;
-        background: radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%);
-        pointer-events: none;
+        content: ""; position: absolute; top: -50px; left: -50px; width: 140px; height: 140px;
+        background: radial-gradient(circle, var(--glow), transparent 70%); pointer-events: none;
       }
-      #ax-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 11px;
-        margin-bottom: 11px;
-        border-bottom: 1px solid #292524;
-        position: relative;
-        z-index: 1;
-      }
-      .ax-brand {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-      }
+      #ax-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 11px; margin-bottom: 11px; border-bottom: 1px solid var(--line); position: relative; z-index: 1; }
+      .ax-brand { display: flex; align-items: center; gap: 9px; }
       .ax-badge {
-        position: relative;
-        width: 34px;
-        height: 34px;
-        border-radius: 11px;
-        background: linear-gradient(135deg, #f59e0b, #ea580c);
-        color: #0c0a09;
-        font-weight: 900;
-        font-size: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+        position: relative; width: 34px; height: 34px; border-radius: 11px;
+        background: linear-gradient(135deg, var(--a1), var(--a2)); color: var(--aink);
+        font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 12px var(--glow);
       }
-      .ax-badge::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: -2px;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: #10b981;
-        border: 2px solid #1c1917;
-      }
+      .ax-badge::after { content: ""; position: absolute; bottom: -2px; left: -2px; width: 9px; height: 9px; border-radius: 50%; background: #10b981; border: 2px solid var(--solid); }
       .ax-title-wrap { line-height: 1.25; }
-      .ax-title { font-weight: 900; font-size: 13.5px; color: #ffffff; }
-      .ax-sub { font-size: 10.5px; color: #a8a29e; font-weight: 600; }
+      .ax-title { font-weight: 900; font-size: 13.5px; color: var(--ink); }
+      .ax-sub { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+      .ax-tools { display: flex; align-items: center; gap: 7px; }
+      .ax-themes { display: flex; gap: 4px; }
+      .ax-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: 2px solid var(--solid); box-shadow: 0 0 0 1px var(--line); transition: transform .15s; }
+      .ax-dot:hover { transform: scale(1.2); }
+      .ax-dot.on { box-shadow: 0 0 0 2px var(--hi); }
       #ax-min {
-        width: 28px;
-        height: 28px;
-        border-radius: 9px;
-        background: #292524;
-        color: #d6d3d1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-weight: 900;
-        user-select: none;
-        transition: 0.2s;
+        width: 28px; height: 28px; border-radius: 9px; background: var(--btn); color: var(--muted);
+        border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-weight: 900; user-select: none; transition: .2s;
       }
-      #ax-min:hover { background: #44403c; color: #fbbf24; }
+      #ax-min:hover { color: var(--hi); }
       #ax-body { position: relative; z-index: 1; }
       #ax-panel button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        width: 100%;
-        margin: 5px 0;
-        padding: 9px 12px;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 800;
-        font-size: 12.5px;
-        transition: all 0.2s ease;
+        display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+        margin: 5px 0; padding: 9px 12px; border: 1px solid transparent; border-radius: 12px;
+        cursor: pointer; font-weight: 800; font-size: 12.5px; transition: all .2s ease;
       }
-      #ax-panel button:active { transform: scale(0.98); }
+      #ax-panel button:active { transform: scale(.98); }
       #ax-panel button[data-a="start"] {
-        background: linear-gradient(135deg, #f59e0b, #ea580c);
-        color: #0c0a09;
-        font-size: 13.5px;
-        font-weight: 900;
-        box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.45);
-        margin-bottom: 9px;
+        background: linear-gradient(135deg, var(--a1), var(--a2)); color: var(--aink);
+        font-size: 13.5px; font-weight: 900; margin-bottom: 9px;
+        box-shadow: 0 8px 20px -4px var(--glow);
       }
-      #ax-panel button[data-a="start"]:hover {
-        background: linear-gradient(135deg, #fbbf24, #f97316);
-        transform: translateY(-1px);
-      }
-      .ax-options {
-        background: #0c0a09;
-        border: 1px solid #292524;
-        border-radius: 14px;
-        padding: 9px 11px;
-        margin-bottom: 8px;
-      }
-      .ax-radio {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        margin: 4px 0;
-        color: #d6d3d1;
-        font-size: 11.5px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      .ax-radio input[type="radio"] {
-        accent-color: #f59e0b;
-        width: 14px;
-        height: 14px;
-        margin: 0;
-        cursor: pointer;
-      }
-      .ax-wait-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 7px;
-        padding-top: 7px;
-        border-top: 1px dashed #292524;
-        color: #a8a29e;
-        font-size: 11.5px;
-        font-weight: 700;
-      }
-      #ax-wait {
-        width: 58px;
-        background: #1c1917;
-        color: #fbbf24;
-        border: 1px solid #44403c;
-        border-radius: 8px;
-        padding: 2px 6px;
-        text-align: center;
-        font-weight: 800;
-        font-size: 12px;
-      }
-      #ax-wait:focus { outline: none; border-color: #f59e0b; }
-      .ax-grid-btns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        margin: 5px 0;
-      }
+      #ax-panel button[data-a="start"]:hover { filter: brightness(1.08); transform: translateY(-1px); }
+      .ax-options { background: var(--box); border: 1px solid var(--line); border-radius: 14px; padding: 9px 11px; margin-bottom: 8px; }
+      .ax-radio { display: flex; align-items: center; gap: 7px; margin: 4px 0; color: var(--ink); font-size: 11.5px; font-weight: 600; cursor: pointer; }
+      .ax-radio input[type="radio"] { accent-color: var(--a2); width: 14px; height: 14px; margin: 0; cursor: pointer; }
+      .ax-wait-row { display: flex; align-items: center; justify-content: space-between; margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11.5px; font-weight: 700; }
+      #ax-wait { width: 58px; background: var(--solid); color: var(--hi); border: 1px solid var(--line); border-radius: 8px; padding: 2px 6px; text-align: center; font-weight: 800; font-size: 12px; }
+      #ax-wait:focus { outline: none; border-color: var(--a1); }
+      .ax-grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 5px 0; }
       .ax-grid-btns button { margin: 0 !important; padding: 7.5px 8px !important; font-size: 11.5px !important; }
-      #ax-panel button[data-a="stop"] {
-        background: rgba(225, 29, 72, 0.14);
-        color: #fda4af;
-        border-color: rgba(225, 29, 72, 0.3);
-      }
-      #ax-panel button[data-a="stop"]:hover { background: rgba(225, 29, 72, 0.25); color: #fff; }
-      #ax-panel button[data-a="xlsx"], #ax-panel button[data-a="pdf"] {
-        background: #292524;
-        color: #e7e5e4;
-        border-color: #3f3a36;
-      }
-      #ax-panel button[data-a="xlsx"]:hover, #ax-panel button[data-a="pdf"]:hover {
-        background: #3f3a36;
-        border-color: #f59e0b;
-        color: #fbbf24;
-      }
-      #ax-panel button[data-a="diag"] {
-        background: transparent;
-        color: #a8a29e;
-        border: 1px dashed #3f3a36;
-        padding: 6px !important;
-        font-size: 11.5px !important;
-      }
-      #ax-panel button[data-a="diag"]:hover { color: #e7e5e4; border-color: #78716c; background: rgba(255,255,255,0.03); }
+      #ax-panel button[data-a="stop"] { background: rgba(225,29,72,.1); color: var(--stop); border-color: rgba(225,29,72,.3); }
+      #ax-panel button[data-a="stop"]:hover { background: rgba(225,29,72,.2); }
+      #ax-panel button[data-a="xlsx"], #ax-panel button[data-a="pdf"] { background: var(--btn); color: var(--ink); border-color: var(--line); }
+      #ax-panel button[data-a="xlsx"]:hover, #ax-panel button[data-a="pdf"]:hover { border-color: var(--a1); color: var(--hi); }
+      #ax-panel button[data-a="diag"] { background: transparent; color: var(--muted); border: 1px dashed var(--line); padding: 6px !important; font-size: 11.5px !important; }
+      #ax-panel button[data-a="diag"]:hover { color: var(--ink); border-color: var(--a1); }
       #ax-status {
-        margin-top: 8px;
-        padding: 9px 11px;
-        background: #0c0a09;
-        border: 1px solid #292524;
-        border-right: 3px solid #f59e0b;
-        border-radius: 11px;
-        min-height: 22px;
-        white-space: pre-line;
-        color: #fafaf9;
-        font-size: 11.5px;
-        font-weight: 700;
-        line-height: 1.55;
+        margin-top: 8px; padding: 9px 11px; background: var(--box); border: 1px solid var(--line);
+        border-right: 3px solid var(--a1); border-radius: 11px; min-height: 22px; white-space: pre-line;
+        color: var(--ink); font-size: 11.5px; font-weight: 700; line-height: 1.55;
       }
-      #ax-timer {
-        display: none;
-        margin-top: 8px;
-        padding: 8px 10px;
-        border-radius: 11px;
-        background: rgba(245, 158, 11, 0.1);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        text-align: center;
-      }
-      #ax-timer-txt { font-weight: 800; color: #fbbf24; font-size: 11.5px; }
-      .ax-timer-track {
-        height: 6px;
-        background: #292524;
-        border-radius: 99px;
-        margin-top: 6px;
-        overflow: hidden;
-      }
-      #ax-timer-bar {
-        height: 100%;
-        width: 0;
-        background: linear-gradient(90deg, #f59e0b, #ea580c);
-        transition: width 0.4s ease;
-      }
-      .ax-footer {
-        margin-top: 10px;
-        padding-top: 8px;
-        border-top: 1px solid #292524;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-      .ax-designer {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-      }
-      .ax-flask-icon {
-        width: 26px;
-        height: 26px;
-        border-radius: 8px;
-        background: rgba(245, 158, 11, 0.12);
-        border: 1px solid rgba(245, 158, 11, 0.25);
-        color: #fbbf24;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .ax-credit-txt {
-        font-size: 10.5px;
-        color: #a8a29e;
-        line-height: 1.35;
-      }
-      .ax-credit-txt b { color: #f5f5f4; font-weight: 800; display: block; }
+      #ax-timer { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 11px; background: var(--soft); border: 1px solid var(--line); text-align: center; }
+      #ax-timer-txt { font-weight: 800; color: var(--hi); font-size: 11.5px; }
+      .ax-timer-track { height: 6px; background: var(--btn); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+      #ax-timer-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--a1), var(--a2)); transition: width .4s ease; }
+      .ax-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .ax-designer { display: flex; align-items: center; gap: 7px; }
+      .ax-flask-icon { width: 26px; height: 26px; border-radius: 8px; background: var(--soft); border: 1px solid var(--line); color: var(--hi); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .ax-credit-txt { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+      .ax-credit-txt b { color: var(--ink); font-weight: 800; display: block; }
     </style>
 
     <div id="ax-head">
@@ -341,7 +173,10 @@
           <div class="ax-sub">الأتمتة الذكية • الإصدار ${(typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) || ''}</div>
         </div>
       </div>
-      <span id="ax-min" title="تصغير / تكبير">—</span>
+      <div class="ax-tools">
+        <div class="ax-themes">${Object.entries(THEMES).map(([k, t]) => `<span class="ax-dot" data-t="${k}" title="${t.name}" style="background:${t.dot}"></span>`).join('')}</div>
+        <span id="ax-min" title="تصغير / تكبير">—</span>
+      </div>
     </div>
 
     <div id="ax-body">
@@ -395,6 +230,13 @@
 
   document.body.appendChild(panel);
   const status = t => (panel.querySelector('#ax-status').textContent = t);
+  function applyTheme(k) {
+    panel.setAttribute('data-axt', k);
+    const done = document.getElementById('ax-done'); if (done) done.setAttribute('data-axt', k);
+    panel.querySelectorAll('.ax-dot').forEach(d => d.classList.toggle('on', d.dataset.t === k));
+  }
+  applyTheme(curTheme());
+  panel.querySelectorAll('.ax-dot').forEach(d => d.onclick = () => { GM_setValue(THEMEK, d.dataset.t); applyTheme(d.dataset.t); });
   panel.querySelector('#ax-min').onclick = () => {
     const b = panel.querySelector('#ax-body');
     const isHidden = b.style.display === 'none';
@@ -595,45 +437,85 @@
 
   async function doSelPlace() {
     status('٢- اختيار القسم والمدرسة');
-    // نعيد البحث عن القوائم في كل مرة لأن عتاد يعيد رسم الصفحة بعد كل اختيار
+    // نعيد البحث عن العناصر في كل مرة لأن عتاد يعيد رسم الصفحة بعد كل اختيار
     const findDept = () => [...document.querySelectorAll('select')].find(x => isVisible(x) && [...x.options].some(o => AR(o.text) === AR(DEPT)));
     const deptOk = d => d && AR((d.options[d.selectedIndex] || {}).text) === AR(DEPT);
+    // المدرسة تظهر كرابط داخل جدول (الدائرة | قسم | مستوى الصلاحية)
+    const findSchLinks = () => {
+      const hdr = [...document.querySelectorAll('th,td')].find(c => !panel.contains(c) && isVisible(c) && ['الدائره', 'مستوي الصلاحيه'].includes(AR(c.innerText)));
+      let links = [];
+      if (hdr) {
+        const t = hdr.closest('table');
+        links = [...t.querySelectorAll('a')].filter(a => isVisible(a) && !a.closest('th') && norm(a.innerText).length > 2 && a.closest('tr') !== hdr.closest('tr'));
+      }
+      if (!links.length) links = [...document.querySelectorAll('table a')].filter(a => !panel.contains(a) && isVisible(a) && /الصفوف|مدرسه/.test(AR(a.innerText)));
+      // رابط واحد لكل صف (صف = مدرسة/صلاحية)، ونفضّل رابط اسم المدرسة
+      const byRow = new Map();
+      links.forEach(a => { const r = a.closest('tr'); if (!byRow.has(r)) byRow.set(r, []); byRow.get(r).push(a); });
+      return [...byRow.values()].map(arr => arr.find(a => /الصفوف|مدرس|بن /.test(AR(a.innerText))) || arr[0]);
+    };
+    // أو قائمة اختيار (في بعض الحسابات)
     const findSch = () => [...document.querySelectorAll('select')].find(x => isVisible(x) && !panel.contains(x) &&
       ![...x.options].some(o => AR(o.text) === AR(DEPT)) && realOptions(x).length);
+    const remember = txt => { GM_setValue(SCHK, norm(txt)); GM_setValue(SCHN, norm(txt)); };
 
-    let sch = null;
-    for (let tries = 0; tries < 4 && !sch; tries++) {
+    let found = null;
+    for (let tries = 0; tries < 4 && !found; tries++) {
       const dept = await waitFor(findDept, WAIT(), 'تحميل قائمة الأقسام');
       if (stopFlag || leaving) return;
-      if (!dept) { status(`⚠️ لم أجد قائمة القسم «${DEPT}».`); return; }
+      if (!dept) {
+        // ربما ظهرت المدرسة مباشرة بدون قائمة الأقسام
+        const l = findSchLinks(); if (l.length) { found = { links: l }; break; }
+        status(`⚠️ لم أجد قائمة القسم «${DEPT}».`); return;
+      }
       if (!deptOk(dept)) {
         const opt = [...dept.options].find(o => AR(o.text) === AR(DEPT));
         await setSelect(dept, opt.value);
         if (leaving) return;
       }
-      // ننتظر ظهور قائمة المدارس مع بقاء القسم على «المدارس»
-      sch = await waitFor(() => { const d = findDept(); if (d && !deptOk(d)) return null; return findSch(); }, WAIT(), 'تحميل قائمة المدارس');
+      found = await waitFor(() => {
+        const d = findDept(); if (d && !deptOk(d)) return null;
+        const l = findSchLinks(); if (l.length) return { links: l };
+        const x = findSch(); return x ? { sel: x } : null;
+      }, WAIT(), 'تحميل اسم المدرسة');
       if (stopFlag || leaving) return;
     }
-    if (!sch) { status('⚠️ لم تظهر قائمة المدارس. اختر القسم والمدرسة يدويًا والأداة تكمل.'); return; }
-
-    const opts = realOptions(sch);
+    if (!found) { status('⚠️ لم يظهر اسم المدرسة. اضغط عليه يدويًا والأداة تكمل.'); return; }
     const key = GM_getValue(SCHK, '');
+
+    // --- المدرسة كرابط: نضغطه تلقائيًا ---
+    if (found.links) {
+      const links = found.links;
+      let link = (key && links.find(a => AR(a.innerText) === AR(key))) || (links.length === 1 ? links[0] : null);
+      if (!link && key) link = links.find(a => AR(a.innerText).includes(AR(key)) || AR(key).includes(AR(a.innerText))) || null;
+      if (!link) {
+        status('🏫 تظهر أكثر من مدرسة — اضغط على مدرستك مرة واحدة، والأداة تتذكرها.');
+        links.forEach(a => a.addEventListener('click', () => { remember(a.innerText); const st = load(); if (st) { st.stage = 'menu'; save(st); } }, true));
+        return;
+      }
+      remember(link.innerText);
+      const st = load(); st.stage = 'menu'; save(st);
+      status(`🏫 ${norm(link.innerText)}`);
+      await sleep(600);
+      clickEl(link);
+      return;
+    }
+
+    // --- المدرسة كقائمة اختيار ---
+    const sch = found.sel, opts = realOptions(sch);
     let so = (key && opts.find(o => AR(o.text) === AR(key))) || (opts.length === 1 ? opts[0] : null);
-    const remember = o => { GM_setValue(SCHK, norm(o.text)); GM_setValue(SCHN, norm(o.text)); };
     if (!so) {
       status('🏫 اختر مدرستك من القائمة — مرة واحدة فقط، والأداة تتذكرها.');
-      // نحفظ الاختيار فورًا لأن عتاد قد ينتقل للصفحة التالية مباشرة
       document.addEventListener('change', e => {
         if (e.target.tagName !== 'SELECT') return;
         const o = realOptions(e.target).find(x => x.value === e.target.value);
-        if (o && !AR(o.text).includes(AR(DEPT))) remember(o);
+        if (o && !AR(o.text).includes(AR(DEPT))) remember(o.text);
       }, true);
       const v0 = sch.value;
       so = await waitFor(() => { const x = findSch(); return x && x.value !== v0 ? realOptions(x).find(o => o.value === x.value) || null : null; }, 300000);
       if (!so) { if (!leaving) status('⚠️ لم يتم اختيار المدرسة.'); return; }
     }
-    remember(so);
+    remember(so.text);
     const st = load(); st.stage = 'menu'; save(st);
     const cur = findSch();
     if (cur && cur.value !== so.value) { await setSelect(cur, so.value); if (leaving) return; }
@@ -847,113 +729,40 @@
     const what = d.mode === 'export' ? `${d.files} ملف تصدير` : `${d.rows.length} صنفًا`;
     const box = document.createElement('div');
     box.id = 'ax-done'; box.dir = 'rtl';
+    box.setAttribute('data-axt', curTheme());
     box.innerHTML = `
       <style>
-        #ax-done {
-          position: fixed;
-          inset: 0;
-          z-index: 2147483647;
-          background: rgba(12, 10, 9, 0.72);
-          backdrop-filter: blur(6px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Cairo', Tahoma, Arial, sans-serif;
-          animation: axFade .3s ease;
-        }
+        #ax-done { position: fixed; inset: 0; z-index: 2147483647; background: rgba(12,10,9,.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; font-family: 'Cairo', Tahoma, Arial, sans-serif; animation: axFade .3s ease; }
         #ax-done * { box-sizing: border-box; font-family: 'Cairo', Tahoma, Arial, sans-serif; }
-        #ax-done .card {
-          position: relative;
-          background: #1c1917;
-          color: #f5f5f4;
-          border-radius: 26px;
-          padding: 32px 28px 22px;
-          width: min(410px, 92vw);
-          text-align: center;
-          box-shadow: 0 25px 70px rgba(0,0,0,0.65);
-          border: 1px solid #292524;
-          border-top: 6px solid ${accent};
-          animation: axPop .45s cubic-bezier(.2,1.4,.4,1);
-        }
-        #ax-done .flask {
-          position: relative;
-          width: 88px;
-          height: 88px;
-          margin: -74px auto 12px;
-          background: #0c0a09;
-          border: 3px solid ${accent};
-          border-radius: 24px;
-          display: grid;
-          place-items: center;
-          font-size: 46px;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.45);
-          animation: axBob 1.8s ease-in-out infinite;
-        }
-        #ax-done .b {
-          position: absolute;
-          bottom: 62px;
-          border-radius: 50%;
-          background: ${clean ? '#34d399' : '#fbbf24'};
-          opacity: 0;
-          animation: axRise 2.4s ease-in infinite;
-        }
-        #ax-done h2 { margin: 4px 0; font-size: 19px; font-weight: 900; color: #ffffff; }
-        #ax-done p.sch { margin: 2px 0 12px; color: #fbbf24; font-size: 13.5px; font-weight: 700; }
+        #ax-done .card { position: relative; background: var(--bg); color: var(--ink); border-radius: 26px; padding: 32px 28px 22px; width: min(410px, 92vw); text-align: center; box-shadow: 0 25px 70px rgba(0,0,0,.45); border: 1px solid var(--line); border-top: 6px solid ${accent}; animation: axPop .45s cubic-bezier(.2,1.4,.4,1); }
+        #ax-done .flask { position: relative; width: 88px; height: 88px; margin: -74px auto 12px; background: var(--solid); border: 3px solid ${accent}; border-radius: 24px; display: grid; place-items: center; font-size: 46px; box-shadow: 0 12px 28px rgba(0,0,0,.25); animation: axBob 1.8s ease-in-out infinite; }
+        #ax-done .b { position: absolute; bottom: 62px; border-radius: 50%; background: ${clean ? '#34d399' : '#fbbf24'}; opacity: 0; animation: axRise 2.4s ease-in infinite; }
+        #ax-done h2 { margin: 4px 0; font-size: 19px; font-weight: 900; color: var(--ink); }
+        #ax-done p.sch { margin: 2px 0 12px; color: var(--hi); font-size: 13.5px; font-weight: 700; }
         #ax-done .stats { display: flex; gap: 8px; justify-content: center; margin: 14px 0 10px; }
-        #ax-done .st {
-          flex: 1;
-          background: #0c0a09;
-          border: 1px solid #292524;
-          border-radius: 14px;
-          padding: 10px 6px;
-          font-size: 12px;
-          color: #a8a29e;
-          font-weight: 700;
-        }
-        #ax-done .st b { display: block; font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px; }
-        #ax-done .st.bad b { color: #f59e0b; }
-        #ax-done .note {
-          font-size: 12px;
-          padding: 8px 12px;
-          border-radius: 10px;
-          background: rgba(245, 158, 11, 0.1);
-          color: #fde68a;
-          margin: 10px 0;
-        }
+        #ax-done .st { flex: 1; background: var(--box); border: 1px solid var(--line); border-radius: 14px; padding: 10px 6px; font-size: 12px; color: var(--muted); font-weight: 700; }
+        #ax-done .st b { display: block; font-size: 20px; font-weight: 900; color: var(--ink); margin-bottom: 2px; }
+        #ax-done .st.bad b { color: #d97706; }
+        #ax-done .note { font-size: 12px; padding: 8px 12px; border-radius: 10px; background: var(--soft); color: var(--ink); margin: 10px 0; }
         #ax-done .btns { display: flex; gap: 8px; margin-top: 16px; }
-        #ax-done button {
-          flex: 1;
-          border: 1px solid #3f3a36;
-          border-radius: 12px;
-          padding: 10px 8px;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          background: #292524;
-          color: #e7e5e4;
-          transition: 0.2s;
-        }
-        #ax-done button:hover { background: #3f3a36; }
-        #ax-done button.main {
-          background: linear-gradient(135deg, #f59e0b, #ea580c);
-          color: #0c0a09;
-          border-color: transparent;
-          font-weight: 900;
-        }
-        #ax-done .credit {
-          margin-top: 14px;
-          padding-top: 10px;
-          border-top: 1px solid #292524;
-          font-size: 11px;
-          color: #78716c;
-          font-weight: 600;
-        }
+        #ax-done button { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; font-weight: 800; font-size: 13px; cursor: pointer; background: var(--btn); color: var(--ink); transition: .2s; }
+        #ax-done button:hover { border-color: var(--a1); color: var(--hi); }
+        #ax-done button.main { background: linear-gradient(135deg, var(--a1), var(--a2)); color: var(--aink); border-color: transparent; font-weight: 900; }
+        #ax-done button.main:hover { filter: brightness(1.08); color: var(--aink); }
+        #ax-done .x { position: absolute; top: 12px; left: 12px; width: 30px; height: 30px; border-radius: 10px; background: var(--btn); color: var(--muted); border: 1px solid var(--line); display: grid; place-items: center; cursor: pointer; font-size: 15px; font-weight: 900; line-height: 1; z-index: 2; }
+        #ax-done .x:hover { color: var(--ink); }
+        #ax-done .life { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--btn); border-radius: 0 0 26px 26px; overflow: hidden; }
+        #ax-done .life i { display: block; height: 100%; width: 100%; background: ${accent}; transform-origin: left; animation: axLife 30s linear forwards; }
+        #ax-done .left { font-size: 10.5px; color: var(--muted); margin-top: 6px; }
+        #ax-done .credit { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); font-weight: 600; }
+        @keyframes axLife { to { transform: scaleX(0); } }
         @keyframes axFade { from { opacity: 0; } }
         @keyframes axPop { from { transform: scale(.7); opacity: 0; } }
         @keyframes axBob { 50% { transform: translateY(-5px) rotate(-4deg); } }
         @keyframes axRise { 0% { transform: translateY(0) scale(.6); opacity: 0; } 20% { opacity: .85; } 100% { transform: translateY(-110px) scale(1.2); opacity: 0; } }
       </style>
       <div class="card">
+        <span class="x" data-x="close" title="إغلاق">✕</span>
         <span class="b" style="left:44%;width:10px;height:10px;animation-delay:0s"></span>
         <span class="b" style="left:52%;width:7px;height:7px;animation-delay:.6s"></span>
         <span class="b" style="left:48%;width:12px;height:12px;animation-delay:1.2s"></span>
@@ -974,11 +783,20 @@
           <button data-x="close">إغلاق</button>
         </div>
         <div class="credit">تصميم وتطوير: سيف جمال المعولي • معولة بن شمس (5-12)</div>
+        <div class="left">تُغلق تلقائيًا بعد <span id="ax-left">30</span> ثانية</div>
+        <div class="life"><i></i></div>
       </div>`;
+    let left = 30;
+    const tick = setInterval(() => {
+      left--;
+      const el = box.querySelector('#ax-left'); if (el) el.textContent = left;
+      if (left <= 0) close();
+    }, 1000);
+    function close() { clearInterval(tick); box.remove(); }
     box.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-x]');
+      const btn = e.target.closest('[data-x]');
       const x = btn && btn.dataset.x;
-      if (e.target === box || x === 'close') box.remove();
+      if (e.target === box || x === 'close') close();
       if (x === 'pdf') printPDF(d);
       if (x === 'xlsx') exportExcel(d);
     });
