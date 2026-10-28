@@ -4,7 +4,7 @@
 // @author       سيف جمال المعولي
 // @updateURL    https://mawals.github.io/gdg/atad.user.js
 // @downloadURL  https://mawals.github.io/gdg/atad.user.js
-// @version      3.5
+// @version      3.7
 // @description  أعمالي ← عتاد ← المدارس ← المدرسة ← تقارير المختبر ← عهدة الأصناف المخبرية، ثم يمر على كل نوع رئيسي وفرعي وكل الصفحات ويجمعها في Excel واحد (أو يضغط زر التصدير لكل صفحة)
 // @match        *://*.moe.gov.om/*
 // @include      /^https?:\/\/([^\/]*\.)?moe\.gov\.om(:\d+)?\/.*$/
@@ -21,7 +21,7 @@
   if (window.top !== window.self) return;
 
   // ================= الإعدادات =================
-  // المدرسة: تُكتب في خانة «المدرسة» في اللوحة، أو تُحفظ تلقائيًا أول مرة يختارها الفني
+  // المدرسة: تُحفظ تلقائيًا أول مرة يختارها الفني في عتاد
   const SCHK = 'atad3_school', SCHN = 'atad3_schoolname';
   const DEPT = 'المدارس';                     // القسم
   const MENU = 'تقارير المختبر';
@@ -53,33 +53,354 @@
     return null;
   }
 
-  // ================= اللوحة =================
+  // ================= اللوحة الفاخرة (Obsidian & Amber Gold UI) =================
+  if (!document.getElementById('ax-cairo-font')) {
+    const link = document.createElement('link');
+    link.id = 'ax-cairo-font';
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap';
+    document.head.appendChild(link);
+  }
+
   const panel = document.createElement('div');
+  panel.id = 'ax-panel';
   panel.dir = 'rtl';
-  panel.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:2147483647;background:#fff;border:2px solid #0f766e;border-radius:12px;padding:10px;width:270px;font:13px Tahoma,Arial;box-shadow:0 4px 18px rgba(0,0,0,.25);color:#111';
   panel.innerHTML = `
-    <div style="font-weight:bold;color:#0f766e;margin-bottom:6px;display:flex;justify-content:space-between">
-      <span>📦 تصدير عهدة المختبر</span><span id="ax-min" style="cursor:pointer">—</span></div>
+    <style>
+      #ax-panel {
+        position: fixed;
+        bottom: 18px;
+        left: 18px;
+        z-index: 2147483647;
+        background: #1c1917;
+        color: #f5f5f4;
+        border: 1px solid #292524;
+        border-radius: 22px;
+        padding: 15px;
+        width: 300px;
+        font-family: 'Cairo', Tahoma, Arial, sans-serif;
+        font-size: 12.5px;
+        box-shadow: 0 22px 45px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(245,158,11,0.16);
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        line-height: 1.5;
+        box-sizing: border-box;
+      }
+      #ax-panel * { box-sizing: border-box; font-family: 'Cairo', Tahoma, Arial, sans-serif; }
+      #ax-panel::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        left: -50px;
+        width: 130px;
+        height: 130px;
+        background: radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%);
+        pointer-events: none;
+      }
+      #ax-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 11px;
+        margin-bottom: 11px;
+        border-bottom: 1px solid #292524;
+        position: relative;
+        z-index: 1;
+      }
+      .ax-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .ax-badge {
+        position: relative;
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+        color: #0c0a09;
+        font-weight: 900;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+      }
+      .ax-badge::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: -2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2px solid #1c1917;
+      }
+      .ax-title-wrap { line-height: 1.25; }
+      .ax-title { font-weight: 900; font-size: 13.5px; color: #ffffff; }
+      .ax-sub { font-size: 10.5px; color: #a8a29e; font-weight: 600; }
+      #ax-min {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        background: #292524;
+        color: #d6d3d1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: 900;
+        user-select: none;
+        transition: 0.2s;
+      }
+      #ax-min:hover { background: #44403c; color: #fbbf24; }
+      #ax-body { position: relative; z-index: 1; }
+      #ax-panel button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        margin: 5px 0;
+        padding: 9px 12px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 12.5px;
+        transition: all 0.2s ease;
+      }
+      #ax-panel button:active { transform: scale(0.98); }
+      #ax-panel button[data-a="start"] {
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+        color: #0c0a09;
+        font-size: 13.5px;
+        font-weight: 900;
+        box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.45);
+        margin-bottom: 9px;
+      }
+      #ax-panel button[data-a="start"]:hover {
+        background: linear-gradient(135deg, #fbbf24, #f97316);
+        transform: translateY(-1px);
+      }
+      .ax-options {
+        background: #0c0a09;
+        border: 1px solid #292524;
+        border-radius: 14px;
+        padding: 9px 11px;
+        margin-bottom: 8px;
+      }
+      .ax-radio {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: 4px 0;
+        color: #d6d3d1;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ax-radio input[type="radio"] {
+        accent-color: #f59e0b;
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        cursor: pointer;
+      }
+      .ax-wait-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 7px;
+        padding-top: 7px;
+        border-top: 1px dashed #292524;
+        color: #a8a29e;
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+      #ax-wait {
+        width: 58px;
+        background: #1c1917;
+        color: #fbbf24;
+        border: 1px solid #44403c;
+        border-radius: 8px;
+        padding: 2px 6px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      #ax-wait:focus { outline: none; border-color: #f59e0b; }
+      .ax-grid-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin: 5px 0;
+      }
+      .ax-grid-btns button { margin: 0 !important; padding: 7.5px 8px !important; font-size: 11.5px !important; }
+      #ax-panel button[data-a="stop"] {
+        background: rgba(225, 29, 72, 0.14);
+        color: #fda4af;
+        border-color: rgba(225, 29, 72, 0.3);
+      }
+      #ax-panel button[data-a="stop"]:hover { background: rgba(225, 29, 72, 0.25); color: #fff; }
+      #ax-panel button[data-a="xlsx"], #ax-panel button[data-a="pdf"] {
+        background: #292524;
+        color: #e7e5e4;
+        border-color: #3f3a36;
+      }
+      #ax-panel button[data-a="xlsx"]:hover, #ax-panel button[data-a="pdf"]:hover {
+        background: #3f3a36;
+        border-color: #f59e0b;
+        color: #fbbf24;
+      }
+      #ax-panel button[data-a="diag"] {
+        background: transparent;
+        color: #a8a29e;
+        border: 1px dashed #3f3a36;
+        padding: 6px !important;
+        font-size: 11.5px !important;
+      }
+      #ax-panel button[data-a="diag"]:hover { color: #e7e5e4; border-color: #78716c; background: rgba(255,255,255,0.03); }
+      #ax-status {
+        margin-top: 8px;
+        padding: 9px 11px;
+        background: #0c0a09;
+        border: 1px solid #292524;
+        border-right: 3px solid #f59e0b;
+        border-radius: 11px;
+        min-height: 22px;
+        white-space: pre-line;
+        color: #fafaf9;
+        font-size: 11.5px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+      #ax-timer {
+        display: none;
+        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 11px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        text-align: center;
+      }
+      #ax-timer-txt { font-weight: 800; color: #fbbf24; font-size: 11.5px; }
+      .ax-timer-track {
+        height: 6px;
+        background: #292524;
+        border-radius: 99px;
+        margin-top: 6px;
+        overflow: hidden;
+      }
+      #ax-timer-bar {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #f59e0b, #ea580c);
+        transition: width 0.4s ease;
+      }
+      .ax-footer {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #292524;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .ax-designer {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .ax-flask-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        color: #fbbf24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .ax-credit-txt {
+        font-size: 10.5px;
+        color: #a8a29e;
+        line-height: 1.35;
+      }
+      .ax-credit-txt b { color: #f5f5f4; font-weight: 800; display: block; }
+    </style>
+
+    <div id="ax-head">
+      <div class="ax-brand">
+        <div class="ax-badge">عتاد</div>
+        <div class="ax-title-wrap">
+          <div class="ax-title">مُصدِّر عهدة المختبر</div>
+          <div class="ax-sub">الأتمتة الذكية • الإصدار ${(typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) || ''}</div>
+        </div>
+      </div>
+      <span id="ax-min" title="تصغير / تكبير">—</span>
+    </div>
+
     <div id="ax-body">
-      <button data-a="start">▶️ ابدأ</button>
-      <label style="display:block;margin:4px 0"><input type="radio" name="ax-mode" value="collect"> تجميع الكل في ملف Excel واحد</label>
-      <label style="display:block;margin:4px 0"><input type="radio" name="ax-mode" value="export"> الضغط على زر التصدير لكل صفحة</label>
-      <label style="display:block;margin:4px 0">⏱️ انتظار عتاد حتى <input type="number" id="ax-wait" min="20" max="600" style="width:55px"> ثانية</label>
-      <button data-a="stop" style="background:#b91c1c">⏹ إيقاف (وتصدير ما جُمع)</button>
-      <button data-a="xlsx">📥 تنزيل Excel لآخر نتيجة</button>
-      <button data-a="pdf">🖨️ كشف PDF / طباعة</button>
-      <button data-a="diag" style="background:#475569">🔍 فحص الصفحة</button>
-      <div id="ax-status" style="margin-top:6px;padding:6px;background:#f0fdfa;border-radius:6px;min-height:18px;white-space:pre-line">جاهز.</div>
-      <div style="margin-top:6px;text-align:center;font-size:11px;color:#64748b;line-height:1.6">تصميم: سيف جمال المعولي<br>معولة بن شمس (5-12)</div>
-      <div id="ax-timer" style="display:none;margin-top:6px;padding:6px;border-radius:6px;background:#fff7ed;border:1px solid #fdba74;text-align:center">
-        <div id="ax-timer-txt" style="font-weight:bold;color:#9a3412"></div>
-        <div style="height:6px;background:#fed7aa;border-radius:4px;margin-top:4px;overflow:hidden"><div id="ax-timer-bar" style="height:100%;width:0;background:#ea580c;transition:width .4s"></div></div>
+      <button data-a="start">▶️ ابدأ الفحص والتصدير</button>
+
+      <div class="ax-options">
+        <label class="ax-radio">
+          <input type="radio" name="ax-mode" value="collect">
+          <span>تجميع الكل في ملف Excel واحد</span>
+        </label>
+        <label class="ax-radio">
+          <input type="radio" name="ax-mode" value="export">
+          <span>الضغط على زر التصدير لكل صفحة</span>
+        </label>
+        <div class="ax-wait-row">
+          <span>⏱️ انتظار استجابة عتاد (ثانية)</span>
+          <input type="number" id="ax-wait" min="20" max="600">
+        </div>
+      </div>
+
+      <button data-a="stop">⏹ إيقاف (وتصدير ما جُمع)</button>
+
+      <div class="ax-grid-btns">
+        <button data-a="xlsx">📥 تنزيل Excel</button>
+        <button data-a="pdf">🖨️ كشف PDF</button>
+      </div>
+
+      <button data-a="diag">🔍 فحص عناصر الصفحة</button>
+
+      <div id="ax-status">جاهز للفحص والتصدير.</div>
+
+      <div id="ax-timer">
+        <div id="ax-timer-txt"></div>
+        <div class="ax-timer-track"><div id="ax-timer-bar"></div></div>
+      </div>
+
+      <div class="ax-footer">
+        <div class="ax-designer">
+          <div class="ax-flask-icon">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+            </svg>
+          </div>
+          <div class="ax-credit-txt">
+            <b>سيف جمال المعولي</b>
+            <span>معولة بن شمس (5-12)</span>
+          </div>
+        </div>
       </div>
     </div>`;
-  panel.querySelectorAll('button').forEach(b => b.style.cssText += ';display:block;width:100%;margin:3px 0;padding:6px;border:0;border-radius:6px;background:#0f766e;color:#fff;cursor:pointer;font:13px Tahoma');
+
   document.body.appendChild(panel);
   const status = t => (panel.querySelector('#ax-status').textContent = t);
-  panel.querySelector('#ax-min').onclick = () => { const b = panel.querySelector('#ax-body'); b.style.display = b.style.display === 'none' ? '' : 'none'; };
+  panel.querySelector('#ax-min').onclick = () => {
+    const b = panel.querySelector('#ax-body');
+    const isHidden = b.style.display === 'none';
+    b.style.display = isHidden ? '' : 'none';
+    panel.querySelector('#ax-min').textContent = isHidden ? '—' : '+';
+  };
   const mode = GM_getValue(MODE, 'collect');
   panel.querySelector(`input[value=${mode}]`).checked = true;
   panel.querySelectorAll('input[name=ax-mode]').forEach(r => r.onchange = () => GM_setValue(MODE, r.value));
@@ -88,7 +409,8 @@
   waitBox.onchange = () => { const v = Math.min(600, Math.max(20, +waitBox.value || 90)); waitBox.value = v; GM_setValue(WAITK, v); };
 
   panel.addEventListener('click', e => {
-    const a = e.target.dataset && e.target.dataset.a;
+    const btn = e.target.closest('button[data-a]');
+    const a = btn && btn.dataset.a;
     if (!a) return;
     if (a === 'start') {
       const st = urlStage();
@@ -109,7 +431,7 @@
   const isLink = el => !!el.closest('a[href],button,input,[onclick],[role=button]');
   const timerBox = panel.querySelector('#ax-timer'), timerTxt = panel.querySelector('#ax-timer-txt'), timerBar = panel.querySelector('#ax-timer-bar');
   function showTimer(sec, total) {
-    timerBox.style.display = '';
+    timerBox.style.display = 'block';
     timerTxt.textContent = `⏳ بانتظار عتاد: ${sec} / ${total} ثانية`;
     timerBar.style.width = Math.min(100, sec / total * 100) + '%';
   }
@@ -503,7 +825,7 @@
     showDoneBubble(d, log.length - bad.length, bad.length, !!partial);
   }
 
-  // ================= فقاعة انتهاء التصدير =================
+  // ================= فقاعة انتهاء التصدير الفاخرة =================
   function chime() {
     try {
       const ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -520,31 +842,116 @@
   function showDoneBubble(d, okCount, badCount, partial) {
     const old = document.getElementById('ax-done'); if (old) old.remove();
     const clean = !badCount && !partial;
-    const color = clean ? '#0f766e' : '#c2410c';
-    const title = partial ? 'توقف تصدير العهدة قبل الاكتمال' : clean ? 'انتهى تصدير عهدة المختبر بنجاح' : 'انتهى تصدير العهدة — مع ملاحظات';
+    const accent = clean ? '#10b981' : '#f59e0b';
+    const title = partial ? 'توقف تصدير العهدة قبل الاكتمال' : clean ? 'اكتمل تصدير عهدة المختبر بنجاح' : 'اكتمل تصدير العهدة — مع ملاحظات';
     const what = d.mode === 'export' ? `${d.files} ملف تصدير` : `${d.rows.length} صنفًا`;
     const box = document.createElement('div');
     box.id = 'ax-done'; box.dir = 'rtl';
     box.innerHTML = `
       <style>
-        #ax-done{position:fixed;inset:0;z-index:2147483647;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;font-family:Tahoma,Arial;animation:axFade .3s ease}
-        #ax-done .card{position:relative;background:#fff;border-radius:22px;padding:30px 30px 22px;width:min(380px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);border-top:8px solid ${color};animation:axPop .45s cubic-bezier(.2,1.4,.4,1)}
-        #ax-done .flask{position:relative;width:96px;height:96px;margin:-78px auto 8px;background:#fff;border-radius:50%;display:grid;place-items:center;font-size:56px;box-shadow:0 6px 18px rgba(0,0,0,.18);animation:axBob 1.6s ease-in-out infinite}
-        #ax-done .b{position:absolute;bottom:58px;border-radius:50%;background:${clean ? '#5eead4' : '#fdba74'};opacity:0;animation:axRise 2.4s ease-in infinite}
-        #ax-done h2{margin:6px 0 6px;font-size:20px;color:${color}}
-        #ax-done p{margin:4px 0;color:#334155;font-size:15px}
-        #ax-done .stats{display:flex;gap:8px;justify-content:center;margin:14px 0 6px}
-        #ax-done .st{flex:1;background:#f1f5f9;border-radius:12px;padding:8px 4px;font-size:13px;color:#475569}
-        #ax-done .st b{display:block;font-size:20px;color:#0f172a}
-        #ax-done .st.bad b{color:#c2410c}
-        #ax-done .btns{display:flex;gap:8px;margin-top:16px}
-        #ax-done button{flex:1;border:0;border-radius:10px;padding:10px 6px;font:bold 14px Tahoma;cursor:pointer;background:#e2e8f0;color:#0f172a}
-        #ax-done button.main{background:${color};color:#fff}
-        #ax-done .credit{margin-top:12px;font-size:11px;color:#94a3b8}
-        @keyframes axFade{from{opacity:0}}
-        @keyframes axPop{from{transform:scale(.6);opacity:0}}
-        @keyframes axBob{50%{transform:translateY(-6px) rotate(-6deg)}}
-        @keyframes axRise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.9}100%{transform:translateY(-120px) scale(1.2);opacity:0}}
+        #ax-done {
+          position: fixed;
+          inset: 0;
+          z-index: 2147483647;
+          background: rgba(12, 10, 9, 0.72);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cairo', Tahoma, Arial, sans-serif;
+          animation: axFade .3s ease;
+        }
+        #ax-done * { box-sizing: border-box; font-family: 'Cairo', Tahoma, Arial, sans-serif; }
+        #ax-done .card {
+          position: relative;
+          background: #1c1917;
+          color: #f5f5f4;
+          border-radius: 26px;
+          padding: 32px 28px 22px;
+          width: min(410px, 92vw);
+          text-align: center;
+          box-shadow: 0 25px 70px rgba(0,0,0,0.65);
+          border: 1px solid #292524;
+          border-top: 6px solid ${accent};
+          animation: axPop .45s cubic-bezier(.2,1.4,.4,1);
+        }
+        #ax-done .flask {
+          position: relative;
+          width: 88px;
+          height: 88px;
+          margin: -74px auto 12px;
+          background: #0c0a09;
+          border: 3px solid ${accent};
+          border-radius: 24px;
+          display: grid;
+          place-items: center;
+          font-size: 46px;
+          box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+          animation: axBob 1.8s ease-in-out infinite;
+        }
+        #ax-done .b {
+          position: absolute;
+          bottom: 62px;
+          border-radius: 50%;
+          background: ${clean ? '#34d399' : '#fbbf24'};
+          opacity: 0;
+          animation: axRise 2.4s ease-in infinite;
+        }
+        #ax-done h2 { margin: 4px 0; font-size: 19px; font-weight: 900; color: #ffffff; }
+        #ax-done p.sch { margin: 2px 0 12px; color: #fbbf24; font-size: 13.5px; font-weight: 700; }
+        #ax-done .stats { display: flex; gap: 8px; justify-content: center; margin: 14px 0 10px; }
+        #ax-done .st {
+          flex: 1;
+          background: #0c0a09;
+          border: 1px solid #292524;
+          border-radius: 14px;
+          padding: 10px 6px;
+          font-size: 12px;
+          color: #a8a29e;
+          font-weight: 700;
+        }
+        #ax-done .st b { display: block; font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px; }
+        #ax-done .st.bad b { color: #f59e0b; }
+        #ax-done .note {
+          font-size: 12px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          background: rgba(245, 158, 11, 0.1);
+          color: #fde68a;
+          margin: 10px 0;
+        }
+        #ax-done .btns { display: flex; gap: 8px; margin-top: 16px; }
+        #ax-done button {
+          flex: 1;
+          border: 1px solid #3f3a36;
+          border-radius: 12px;
+          padding: 10px 8px;
+          font-weight: 800;
+          font-size: 13px;
+          cursor: pointer;
+          background: #292524;
+          color: #e7e5e4;
+          transition: 0.2s;
+        }
+        #ax-done button:hover { background: #3f3a36; }
+        #ax-done button.main {
+          background: linear-gradient(135deg, #f59e0b, #ea580c);
+          color: #0c0a09;
+          border-color: transparent;
+          font-weight: 900;
+        }
+        #ax-done .credit {
+          margin-top: 14px;
+          padding-top: 10px;
+          border-top: 1px solid #292524;
+          font-size: 11px;
+          color: #78716c;
+          font-weight: 600;
+        }
+        @keyframes axFade { from { opacity: 0; } }
+        @keyframes axPop { from { transform: scale(.7); opacity: 0; } }
+        @keyframes axBob { 50% { transform: translateY(-5px) rotate(-4deg); } }
+        @keyframes axRise { 0% { transform: translateY(0) scale(.6); opacity: 0; } 20% { opacity: .85; } 100% { transform: translateY(-110px) scale(1.2); opacity: 0; } }
       </style>
       <div class="card">
         <span class="b" style="left:44%;width:10px;height:10px;animation-delay:0s"></span>
@@ -553,21 +960,24 @@
         <span class="b" style="left:56%;width:8px;height:8px;animation-delay:1.8s"></span>
         <div class="flask">${clean ? '🧪' : '⚗️'}</div>
         <h2>${title}</h2>
-        <p>${esc(GM_getValue(SCHN, ''))}</p>
+        <p class="sch">${esc(GM_getValue(SCHN, ''))}</p>
         <div class="stats">
           <div class="st"><b>${what.split(' ')[0]}</b>${what.split(' ').slice(1).join(' ')}</div>
           <div class="st"><b>${okCount}</b>فرع تم تنزيله</div>
-          <div class="st ${badCount ? 'bad' : ''}"><b>${badCount}</b>فرع به مشكلة</div>
+          <div class="st ${badCount ? 'bad' : ''}"><b>${badCount}</b>فرع به ملاحظة</div>
         </div>
-        ${badCount || partial ? '<p style="font-size:13px;color:#9a3412">راجع ورقة «تقرير التنزيل» في ملف الإكسل.</p>' : '<p style="font-size:13px">تم حفظ ملف الإكسل في مجلد التنزيلات.</p>'}
+        <div class="note">
+          ${badCount || partial ? '⚠️ راجع ورقة «تقرير التنزيل» في ملف الإكسل للتفاصيل.' : '✅ تم حفظ ملف الإكسل الكامل في مجلد التنزيلات.'}
+        </div>
         <div class="btns">
-          ${d.rows.length ? '<button class="main" data-x="pdf">🖨️ كشف PDF</button><button data-x="xlsx">📥 Excel مرة أخرى</button>' : ''}
+          ${d.rows.length ? '<button class="main" data-x="pdf">🖨️ كشف PDF</button><button data-x="xlsx">📥 تنزيل Excel</button>' : ''}
           <button data-x="close">إغلاق</button>
         </div>
-        <div class="credit">تصميم: سيف جمال المعولي — معولة بن شمس (5-12)</div>
+        <div class="credit">تصميم وتطوير: سيف جمال المعولي • معولة بن شمس (5-12)</div>
       </div>`;
     box.addEventListener('click', e => {
-      const x = e.target.dataset && e.target.dataset.x;
+      const btn = e.target.closest('button[data-x]');
+      const x = btn && btn.dataset.x;
       if (e.target === box || x === 'close') box.remove();
       if (x === 'pdf') printPDF(d);
       if (x === 'xlsx') exportExcel(d);
@@ -633,12 +1043,14 @@
     const w = window.open('', '_blank');
     if (!w) { status('⚠️ المتصفح منع النافذة. اسمح بالنوافذ المنبثقة لهذا الموقع.'); return; }
     w.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>كشف عهدة المختبر ${d.date}</title>
-      <style>@page{size:A4 landscape;margin:10mm}body{font-family:Tahoma,Arial;font-size:11px}
-      .top{display:flex;justify-content:space-between}h1{text-align:center;font-size:17px;margin:6px 0 10px}
-      table{width:100%;border-collapse:collapse}th,td{border:1px solid #444;padding:3px 5px;text-align:center}
-      th{background:#e5e7eb}thead{display:table-header-group}tr{page-break-inside:avoid}
-      .sign{display:flex;justify-content:space-around;margin-top:36px}.sign div{text-align:center;width:30%}</style></head><body>
-      <div class="top"><div>سلطنة عُمان<br>وزارة التعليم<br>${esc(GM_getValue(SCHN, ''))}</div><div>التاريخ: ${esc(d.date)}<br>عدد الأصناف: ${d.rows.length}</div></div>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+      <style>@page{size:A4 landscape;margin:10mm}body{font-family:'Cairo',Tahoma,Arial;font-size:11px;color:#1c1917}
+      .top{display:flex;justify-content:space-between;border-bottom:2px solid #f59e0b;padding-bottom:8px;margin-bottom:10px;font-weight:700}
+      h1{text-align:center;font-size:18px;font-weight:800;margin:6px 0 12px;color:#0c0a09}
+      table{width:100%;border-collapse:collapse}th,td{border:1px solid #57534e;padding:4px 6px;text-align:center}
+      th{background:#f5f5f4;font-weight:800}thead{display:table-header-group}tr{page-break-inside:avoid}
+      .sign{display:flex;justify-content:space-around;margin-top:36px;font-weight:700}.sign div{text-align:center;width:30%}</style></head><body>
+      <div class="top"><div>سلطنة عُمان<br>وزارة التعليم<br>${esc(GM_getValue(SCHN, ''))}</div><div>التاريخ: ${esc(d.date)}<br>إجمالي الأصناف: ${d.rows.length}</div></div>
       <h1>كشف عهدة الأصناف المخبرية</h1>
       <table><thead><tr><th>م</th>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
       <tbody>${d.rows.map((r, i) => `<tr><td>${i + 1}</td>${head.map((_, j) => `<td>${esc(r[j])}</td>`).join('')}</tr>`).join('')}</tbody></table>
@@ -646,7 +1058,7 @@
       <table><thead><tr><th>النوع الرئيسي</th><th>النوع الفرعي</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>${b.map(x => `<tr><td>${esc(x.main)}</td><td>${esc(x.sub)}</td><td>${esc(x.status)}</td><td>${esc(x.note)}</td></tr>`).join('')}</tbody></table>` : ''; })()}
       <div class="sign"><div>فني المختبر<br><br>الاسم: ................<br><br>التوقيع: ............</div>
       <div>مدير المدرسة<br><br>الاسم: ................<br><br>التوقيع: ............</div></div>
-      <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+      <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);
     w.document.close();
   }
 

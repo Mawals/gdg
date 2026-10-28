@@ -1,131 +1,648 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="scroll-smooth">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تثبيت أداة تصدير عهدة المختبر</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f3f7f6; --card:#ffffff; --ink:#0f1f1d; --muted:#5b6b68; --line:#dbe5e3;
-    --brand:#0f766e; --brand-2:#14b8a6; --brand-ink:#ffffff; --done:#16a34a; --warn:#b45309; --soft:#e6f4f2;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#0b1513; --card:#12201d; --ink:#e7f2ef; --muted:#9db3ae; --line:#24413b; --soft:#163a34; }
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,Tahoma,sans-serif;line-height:1.7}
-  .wrap{max-width:820px;margin:0 auto;padding:28px 16px 60px}
-  header{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-radius:20px;padding:28px 26px;position:relative;overflow:hidden}
-  header::after{content:"📦";position:absolute;left:22px;top:14px;font-size:72px;opacity:.18}
-  header h1{margin:0 0 6px;font-size:28px;font-weight:800}
-  header p{margin:0;opacity:.92}
-  .ver{display:inline-block;margin-top:12px;background:rgba(255,255,255,.18);padding:3px 12px;border-radius:999px;font-size:14px}
-  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px;display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:start}
-  .num{width:56px;height:56px;border-radius:16px;background:var(--soft);color:var(--brand);display:grid;place-items:center;font-size:26px;font-weight:800}
-  .step.done .num{background:var(--done);color:#fff}
-  h2{margin:2px 0 6px;font-size:20px}
-  .muted{color:var(--muted);margin:0 0 12px}
-  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:var(--brand-ink);text-decoration:none;border:0;border-radius:12px;padding:12px 20px;font:700 16px Tajawal,Tahoma;cursor:pointer;margin:4px 0 4px 8px}
-  .btn:hover{background:#115e59}
-  .btn.ghost{background:transparent;color:var(--brand);border:2px solid var(--brand)}
-  .btn.small{padding:8px 14px;font-size:14px}
-  .tip{background:var(--soft);border-radius:12px;padding:10px 14px;font-size:15px;margin-top:10px}
-  .tip b{color:var(--brand)}
-  ol{margin:6px 0 0;padding-inline-start:20px}
-  details{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:14px 18px;margin-top:18px}
-  summary{cursor:pointer;font-weight:700}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none}
-  .toast.show{opacity:1}
-  footer{text-align:center;color:var(--muted);margin-top:28px;font-size:14px}
-  @media (max-width:520px){ .step{grid-template-columns:1fr} .num{width:46px;height:46px;font-size:22px} header h1{font-size:23px} }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مركز تثبيت أداة عتاد | عهدة المختبر</title>
+  
+  <!-- استدعاء خط كايرو الهندسي الحديث من Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- استدعاء Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#0c0a09',
+            charcoal: '#1c1917',
+            sand: '#faf8f5',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* خلفية شبكية هندسية دقيقة */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(120, 113, 108, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(120, 113, 108, 0.08) 1px, transparent 1px);
+    }
+    .dark .bg-grid-pattern {
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    }
+
+    /* تأثيرات التبويبات ومؤشر الخطوات */
+    .tab-btn {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
+    }
+    .tab-btn.done:not(.active) {
+      border-color: rgba(16, 185, 129, 0.5);
+      background-color: rgba(16, 185, 129, 0.08);
+    }
+
+    /* أنيميشن ظهور المحتوى */
+    .panel-view {
+      display: none;
+      animation: slideFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .panel-view.active {
+      display: block;
+    }
+    @keyframes slideFade {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* حلقة التقدم الدائرية */
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
 </head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>أداة تصدير عهدة المختبر من «عتاد»</h1>
-    <p>تفتح عتاد وتمر على كل الأنواع الرئيسية والفرعية وكل الصفحات، وتجمع العهدة في ملف Excel واحد مع تقرير بالفروع التي لم تُنزَّل.</p>
-    <span class="ver" id="ver">الإصدار …</span>
+
+<body class="bg-sand dark:bg-obsidian text-stone-900 dark:text-stone-100 min-h-screen bg-grid-pattern selection:bg-amber-500 selection:text-white transition-colors duration-300 flex flex-col justify-between">
+
+  <!-- إضاءة محيطية دافئة غير تقليدية -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-32 right-10 w-[28rem] h-[28rem] bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-10 w-[26rem] h-[26rem] bg-orange-600/10 dark:bg-orange-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- الشريط العلوي (Top Command Bar) -->
+  <header class="w-full border-b border-stone-200/80 dark:border-stone-800/80 bg-white/70 dark:bg-charcoal/70 backdrop-blur-xl sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+      
+      <!-- الشعار والهوية -->
+      <div class="flex items-center gap-3.5">
+        <div class="relative w-12 h-12 rounded-2xl bg-stone-900 dark:bg-amber-500 text-amber-400 dark:text-stone-950 flex items-center justify-center font-black text-xl shadow-lg">
+          <span>عتاد</span>
+          <span class="absolute -bottom-1 -left-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-charcoal"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-black text-lg sm:text-xl tracking-tight text-stone-900 dark:text-white">مُصدِّر عهدة المختبر</h1>
+            <span id="ver" class="px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+              الإصدار …
+            </span>
+          </div>
+          <p class="text-xs text-stone-500 dark:text-stone-400">معالج الإعداد والتشغيل الفوري • البوابة التعليمية</p>
+        </div>
+      </div>
+
+      <!-- أدوات التحكم العلوية -->
+      <div class="flex items-center gap-2.5">
+        <!-- زر نافذة التثبيت اليدوي والفنيين -->
+        <button onclick="openModal('toolsModal')" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700 transition-all">
+          <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>التثبيت اليدوي والفنيين</span>
+        </button>
+
+        <!-- تبديل النمط -->
+        <button onclick="toggleTheme()" aria-label="تغيير المظهر" class="p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700 transition-all">
+          <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
   </header>
 
-  <section class="step" id="s1">
-    <div class="num">1</div>
-    <div>
-      <h2>ثبّت إضافة Tampermonkey</h2>
-      <p class="muted">مرة واحدة فقط على كل جهاز. اضغط الزر ثم «أضف إلى Firefox» ← «أضف».</p>
-      <a class="btn" id="tmLink" href="https://addons.mozilla.org/ar/firefox/addon/tampermonkey/" target="_blank" rel="noopener" onclick="mark('s1')">🧩 تثبيت Tampermonkey</a>
-      <div class="tip" id="tmNote">إذا كانت الإضافة مثبتة عندك مسبقًا، انتقل للخطوة 2 مباشرة.</div>
+  <!-- مساحة العمل الرئيسية (Bento Split-Screen Layout) -->
+  <main class="max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 flex-1">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- العمود الأيمن: بطاقة الهوية + محاكي الأداة + الإنجاز (5 أعمدة) -->
+      <div class="lg:col-span-5 space-y-5">
+        
+        <!-- بطاقة الملخص الفاخرة (Dark Obsidian Card) -->
+        <div class="rounded-3xl bg-stone-900 dark:bg-charcoal text-white p-6 sm:p-7 border border-stone-800 shadow-2xl relative overflow-hidden">
+          <div class="absolute -left-10 -bottom-10 w-44 h-44 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between gap-4 mb-5">
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg">
+              ⚡ أتمتة شاملة
+            </span>
+
+            <!-- عداد التقدم الدائري -->
+            <div class="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-2xl border border-white/10">
+              <div class="relative w-9 h-9 flex items-center justify-center">
+                <svg class="w-9 h-9" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" class="stroke-stone-700" stroke-width="3.5"></circle>
+                  <circle id="ringCircle" cx="18" cy="18" r="15" fill="none" class="stroke-amber-400 progress-ring__circle" stroke-width="3.5" stroke-dasharray="94.2" stroke-dashoffset="94.2" stroke-linecap="round"></circle>
+                </svg>
+                <span id="ringText" class="absolute text-[10px] font-black text-white">0%</span>
+              </div>
+              <div class="text-right">
+                <p class="text-[11px] text-stone-400 leading-none">جاهزية التثبيت</p>
+                <p id="statusLabel" class="text-xs font-bold text-amber-300 mt-0.5">غير مكتمل</p>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3">
+            استخرج عهدة المختبر كاملة في <span class="text-amber-400 underline decoration-amber-500/40 decoration-wavy underline-offset-8">ملف Excel واحد</span>
+          </h2>
+
+          <p class="text-stone-300 text-sm leading-relaxed mb-6">
+            تفتح الأداة نظام «عتاد» وتمر آليًا على جميع الأنواع الرئيسية والفرعية وكافة الصفحات، وتجمعها مع تقرير مفصّل بالفروع التي لم تُنزَّل.
+          </p>
+
+          <!-- محاكاة بصرية مصغرة لشكل لوحة الأداة داخل البوابة -->
+          <div class="rounded-2xl bg-stone-950/90 border border-stone-800 p-4">
+            <div class="flex items-center justify-between text-xs text-stone-400 pb-2.5 mb-3 border-b border-stone-800">
+              <span class="font-bold text-stone-200 flex items-center gap-1.5">
+                <span>📦</span>
+                <span>معاينة لوحة الأداة داخل البوابة</span>
+              </span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">تعمل تلقائيًا</span>
+            </div>
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <div class="space-y-1">
+                <div class="text-stone-400">الحالة: <span class="text-white font-bold">جاهز للفحص والتصدير</span></div>
+                <div class="text-stone-500 text-[11px]">انتظار عتاد: 120 ثانية • شامل الفروع</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-black text-xs shrink-0 shadow">
+                ▶️ ابدأ
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- بطاقة معلومات المصمم + إعادة الضبط -->
+        <div class="rounded-2xl bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 p-4 px-5 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-stone-400">تصميم وتطوير</p>
+              <p class="text-sm font-extrabold text-stone-800 dark:text-stone-100">سيف جمال المعولي <span class="text-xs font-normal text-stone-500">• معولة بن شمس (5-12)</span></p>
+            </div>
+          </div>
+
+          <button id="resetBtn" onclick="resetProgress()" class="hidden text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline px-2 py-1">
+            إعادة ضبط
+          </button>
+        </div>
+
+      </div>
+
+      <!-- العمود الأيسر: معالج الخطوات التفاعلي (Interactive Stepper) (7 أعمدة) -->
+      <div class="lg:col-span-7 bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-8 shadow-xl shadow-stone-900/5">
+        
+        <!-- شريط اختيار الخطوات (3 Tabs) -->
+        <div class="grid grid-cols-3 gap-2.5 sm:gap-3 mb-7">
+          
+          <button id="tabBtn1" onclick="switchTab(1)" class="tab-btn active text-right p-3 sm:p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/60 flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-extrabold opacity-80">الخطوة 01</span>
+              <span id="check1" class="hidden w-5 h-5 rounded-full bg-emerald-500 text-white text-xs items-center justify-center font-black">✓</span>
+            </div>
+            <div class="font-black text-sm sm:text-base truncate">1. المشغّل</div>
+          </button>
+
+          <button id="tabBtn2" onclick="switchTab(2)" class="tab-btn text-right p-3 sm:p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/60 flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-extrabold opacity-80">الخطوة 02</span>
+              <span id="check2" class="hidden w-5 h-5 rounded-full bg-emerald-500 text-white text-xs items-center justify-center font-black">✓</span>
+            </div>
+            <div class="font-black text-sm sm:text-base truncate">2. أداة العهدة</div>
+          </button>
+
+          <button id="tabBtn3" onclick="switchTab(3)" class="tab-btn text-right p-3 sm:p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/60 flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-extrabold opacity-80">الخطوة 03</span>
+              <span class="text-xs">🚀</span>
+            </div>
+            <div class="font-black text-sm sm:text-base truncate">3. التشغيل</div>
+          </button>
+
+        </div>
+
+        <!-- محتوى الخطوة 1: Tampermonkey -->
+        <div id="panel1" class="panel-view active">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold mb-3">
+            <span>🧩 الأساس البرمجي</span>
+            <span>•</span>
+            <span>تُنفّذ مرة واحدة فقط على الجهاز</span>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white mb-3">
+            ثبّت إضافة Tampermonkey
+          </h3>
+
+          <p class="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed mb-6">
+            هذه الإضافة مجانية وآمنة، وهي المسؤولة عن تشغيل أداة العهدة داخل متصفحك. اضغط على الزر بالأسفل، ثم اختر <strong class="text-stone-900 dark:text-white">«أضف إلى Firefox»</strong> ثم <strong class="text-stone-900 dark:text-white">«أضف»</strong>.
+          </p>
+
+          <!-- الزر الرئيسي للخطوة 1 -->
+          <div class="p-5 rounded-2xl bg-stone-50 dark:bg-stone-900/90 border border-stone-200/80 dark:border-stone-800 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div>
+              <div class="text-xs font-bold text-stone-400 mb-0.5">المتجر الرسمي للمتصفح</div>
+              <div class="font-extrabold text-stone-800 dark:text-stone-100 text-base" id="browserDetectedTitle">إضافة Tampermonkey لمتصفح Firefox</div>
+            </div>
+
+            <a id="tmLink" href="https://addons.mozilla.org/ar/firefox/addon/tampermonkey/" target="_blank" rel="noopener" onclick="mark('s1', true)" class="inline-flex items-center justify-center gap-2.5 bg-gradient-to-l from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black px-6 py-3.5 rounded-xl shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 transition-all text-sm sm:text-base shrink-0">
+              <span>🧩 تثبيت Tampermonkey</span>
+              <svg class="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-800/40 text-xs sm:text-sm text-amber-900 dark:text-amber-200 mb-6">
+            <span class="text-lg leading-none">💡</span>
+            <p id="tmNote">إذا كانت الإضافة مثبتة عندك مسبقًا، لا داعي لتثبيتها مرة أخرى؛ انتقل مباشرة للخطوة الثانية.</p>
+          </div>
+
+          <!-- أزرار التنقل السفلية داخل البطاقة -->
+          <div class="pt-4 border-t border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
+            <span class="text-xs text-stone-400">الخطوة 1 من 3</span>
+            <button onclick="switchTab(2)" class="inline-flex items-center gap-2 text-sm font-extrabold text-amber-600 dark:text-amber-400 hover:text-amber-700">
+              <span>تخطي أو الانتقال للخطوة 2</span>
+              <span>←</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- محتوى الخطوة 2: تثبيت السكربت -->
+        <div id="panel2" class="panel-view">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold mb-3">
+            <span>⚡ السكربت الذكي</span>
+            <span>•</span>
+            <span>يدعم التحديث التلقائي</span>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white mb-3">
+            ثبّت أداة تصدير العهدة
+          </h3>
+
+          <p class="text-stone-600 dark:text-stone-300 text-sm sm:text-base leading-relaxed mb-6">
+            عند الضغط على الزر أدناه، ستفتح لك شاشة Tampermonkey وبها الكود البرمجي جاهزًا، كل ما عليك هو الضغط على زر <strong class="text-stone-900 dark:text-white">«تثبيت» (Install)</strong> فقط.
+          </p>
+
+          <!-- الزر الرئيسي للخطوة 2 -->
+          <div class="p-5 rounded-2xl bg-stone-50 dark:bg-stone-900/90 border border-stone-200/80 dark:border-stone-800 mb-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div>
+              <div class="text-xs font-bold text-stone-400 mb-0.5">ملف الأداة المباشر</div>
+              <div class="font-extrabold text-stone-800 dark:text-stone-100 text-base">سكربت تصدير عهدة عتاد (atad.user.js)</div>
+            </div>
+
+            <a href="atad.user.js" onclick="mark('s2', true)" class="inline-flex items-center justify-center gap-2.5 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 py-3.5 rounded-xl shadow-lg shadow-emerald-600/25 hover:-translate-y-0.5 transition-all text-sm sm:text-base shrink-0">
+              <span>⬇️ تثبيت الأداة الآن</span>
+            </a>
+          </div>
+
+          <!-- ميزة التحديث + البديل اليدوي السريع -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <div class="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/50 border border-stone-200/70 dark:border-stone-800 text-xs sm:text-sm">
+              <div class="font-extrabold text-stone-800 dark:text-stone-200 mb-1">🔄 التحديثات تلقائية</div>
+              <p class="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">أي تعديل أو تطوير جديد على الأداة يصل لكل الأجهزة تلقائيًا عن طريق Tampermonkey.</p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/50 border border-stone-200/70 dark:border-stone-800 text-xs sm:text-sm flex flex-col justify-between">
+              <div class="font-extrabold text-stone-800 dark:text-stone-200 mb-1">🛠️ لم تفتح صفحة التثبيت؟</div>
+              <div class="flex items-center gap-2 mt-1">
+                <button onclick="copyCode()" class="px-3 py-1.5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-xs font-bold transition-colors">
+                  📋 نسخ الكود
+                </button>
+                <button onclick="openModal('toolsModal')" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                  شرح التثبيت اليدوي
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- أزرار التنقل السفلية -->
+          <div class="pt-4 border-t border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
+            <button onclick="switchTab(1)" class="text-xs sm:text-sm font-bold text-stone-500 hover:text-stone-800 dark:hover:text-stone-200">
+              → الرجوع للخطوة 1
+            </button>
+            <button onclick="switchTab(3)" class="inline-flex items-center gap-2 text-sm font-extrabold text-amber-600 dark:text-amber-400 hover:text-amber-700">
+              <span>طريقة التشغيل (الخطوة 3)</span>
+              <span>←</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- محتوى الخطوة 3: طريقة الاستخدام -->
+        <div id="panel3" class="panel-view">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold mb-3">
+            <span>🚀 جاهز للانطلاق</span>
+            <span>•</span>
+            <span>4 خطوات بسيطة داخل البوابة</span>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white mb-4">
+            كيف تستخدم الأداة؟
+          </h3>
+
+          <!-- مسار الاستخدام المرئي -->
+          <div class="space-y-3 mb-5">
+            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/70 border border-stone-200/70 dark:border-stone-800">
+              <span class="w-8 h-8 rounded-xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 font-black text-sm flex items-center justify-center shrink-0">1</span>
+              <p class="text-sm text-stone-700 dark:text-stone-200">سجّل دخولك في <b>البوابة التعليمية</b> (واسمح لفايرفوكس بحفظ كلمة المرور).</p>
+            </div>
+
+            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/70 border border-stone-200/70 dark:border-stone-800">
+              <span class="w-8 h-8 rounded-xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 font-black text-sm flex items-center justify-center shrink-0">2</span>
+              <p class="text-sm text-stone-700 dark:text-stone-200">ستظهر لوحة <b>«📦 تصدير عهدة المختبر»</b> أسفل يسار الصفحة.</p>
+            </div>
+
+            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/70 border border-stone-200/70 dark:border-stone-800">
+              <span class="w-8 h-8 rounded-xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 font-black text-sm flex items-center justify-center shrink-0">3</span>
+              <p class="text-sm text-stone-700 dark:text-stone-200">اضغط <b>«▶️ ابدأ»</b> من الصفحة الرئيسية أو من داخل نظام عتاد.</p>
+            </div>
+
+            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900/70 border border-stone-200/70 dark:border-stone-800">
+              <span class="w-8 h-8 rounded-xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 font-black text-sm flex items-center justify-center shrink-0">4</span>
+              <p class="text-sm text-stone-700 dark:text-stone-200"><b>أول مرة فقط:</b> اختر مدرستك من القائمة في عتاد، والأداة ستتذكرها دائمًا.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs sm:text-sm text-amber-900 dark:text-amber-200 mb-5">
+            <span>⏱️</span>
+            <span><b>ملاحظة مهمة:</b> إذا كان موقع عتاد بطيئًا، زِد خيار «انتظار عتاد» في اللوحة إلى <b>120 ثانية</b>.</span>
+          </div>
+
+          <div class="pt-4 border-t border-stone-200/70 dark:border-stone-800 flex items-center justify-between">
+            <button onclick="switchTab(2)" class="text-xs sm:text-sm font-bold text-stone-500 hover:text-stone-800 dark:hover:text-stone-200">
+              → الرجوع للخطوة 2
+            </button>
+            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">✓ جاهز للعمل</span>
+          </div>
+        </div>
+
+      </div>
+
     </div>
-  </section>
 
-  <section class="step" id="s2">
-    <div class="num">2</div>
-    <div>
-      <h2>ثبّت أداة العهدة</h2>
-      <p class="muted">ستفتح صفحة Tampermonkey وفيها الكود جاهزًا — اضغط <b>«تثبيت» (Install)</b> فقط.</p>
-      <a class="btn" href="atad.user.js" onclick="mark('s2')">⬇️ تثبيت الأداة</a>
-      <div class="tip"><b>التحديثات تلقائية:</b> أي تعديل جديد على الأداة يصل لكل الأجهزة تلقائيًا عن طريق Tampermonkey.</div>
+  </main>
+
+  <!-- نافذة منبثقة (Modal) للتثبيت اليدوي وإعدادات الفنيين -->
+  <div id="toolsModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-charcoal border border-stone-200 dark:border-stone-800 rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative animate-[slideFade_0.25s_ease-out]">
+      
+      <div class="flex items-center justify-between pb-4 mb-5 border-b border-stone-200 dark:border-stone-800">
+        <h3 class="text-lg font-black text-stone-900 dark:text-white">🛠️ التثبيت اليدوي وإعدادات الفنيين</h3>
+        <button onclick="closeModal('toolsModal')" class="w-8 h-8 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white flex items-center justify-center font-bold">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-5 text-sm">
+        <!-- قسم التثبيت اليدوي -->
+        <div class="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/80 border border-stone-200/80 dark:border-stone-800">
+          <h4 class="font-extrabold text-stone-900 dark:text-white mb-2">1) لم تظهر صفحة التثبيت في الخطوة 2؟ ثبّتها يدويًا:</h4>
+          <ol class="list-decimal list-inside space-y-1.5 text-stone-600 dark:text-stone-300 text-xs sm:text-sm mb-4">
+            <li>اضغط زر <b>«نسخ الكود»</b> بالأسفل.</li>
+            <li>اضغط أيقونة Tampermonkey في شريط فايرفوكس ← <b>«إنشاء سكربت جديد»</b>.</li>
+            <li>احذف كل المحتوى الموجود، والصق الكود (<kbd class="px-1.5 py-0.5 rounded bg-stone-200 dark:bg-stone-800 font-mono text-xs">Ctrl+V</kbd>)، ثم احفظ (<kbd class="px-1.5 py-0.5 rounded bg-stone-200 dark:bg-stone-800 font-mono text-xs">Ctrl+S</kbd>).</li>
+          </ol>
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="copyCode()" class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm transition-all">
+              <span>📋 نسخ الكود</span>
+            </button>
+            <a href="atad.user.js" download class="inline-flex items-center gap-2 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm transition-all">
+              <span>💾 تنزيل الملف (atad.user.js)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- قسم الفنيين -->
+        <div class="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/80 border border-stone-200/80 dark:border-stone-800">
+          <h4 class="font-extrabold text-stone-900 dark:text-white mb-1.5">2) للفنيين: تفعيل التنزيل التلقائي للملفات</h4>
+          <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+            في وضع «الضغط على زر التصدير لكل صفحة»: افتح <b>فايرفوكس ← الإعدادات ← عام ← التنزيلات</b> ← ألغِ خيار <b>«اسألني دائمًا أين أحفظ الملفات»</b>.
+          </p>
+        </div>
+      </div>
+
     </div>
-  </section>
+  </div>
 
-  <section class="step" id="s3">
-    <div class="num">3</div>
-    <div>
-      <h2>ابدأ الاستخدام</h2>
-      <ol>
-        <li>سجّل دخولك في البوابة التعليمية (اسمح لفايرفوكس بحفظ كلمة المرور).</li>
-        <li>ستظهر لوحة «📦 تصدير عهدة المختبر» أسفل يسار الصفحة.</li>
-        <li>اضغط <b>«▶️ ابدأ»</b> من الصفحة الرئيسية أو من داخل عتاد.</li>
-        <li>أول مرة فقط: اختر مدرستك من القائمة في عتاد، والأداة تتذكرها.</li>
-      </ol>
-      <div class="tip">⏱️ إذا كان عتاد بطيئًا، زِد «انتظار عتاد» في اللوحة إلى 120 ثانية.</div>
-    </div>
-  </section>
+  <!-- إشعار منبثق (Toast) -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-stone-900 dark:bg-amber-400 text-white dark:text-stone-950 px-5 py-3 rounded-2xl shadow-2xl font-extrabold text-sm opacity-0 translate-y-3 pointer-events-none transition-all duration-300"></div>
 
-  <details>
-    <summary>لم تظهر صفحة التثبيت في الخطوة 2؟ ثبّتها يدويًا</summary>
-    <ol>
-      <li>اضغط «نسخ الكود».</li>
-      <li>اضغط أيقونة Tampermonkey في شريط فايرفوكس ← «إنشاء سكربت جديد».</li>
-      <li>احذف كل المحتوى الموجود، والصق الكود (Ctrl+V)، ثم احفظ (Ctrl+S).</li>
-    </ol>
-    <button class="btn small" onclick="copyCode()">📋 نسخ الكود</button>
-    <a class="btn small ghost" href="atad.user.js" download>💾 تنزيل الملف</a>
-  </details>
+  <script>
+    // إدارة المظهر (الافتراضي نهاري دافئ مع دعم الوضع الداكن الفاخر)
+    function initTheme() {
+      try {
+        const saved = localStorage.getItem('atad_theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    }
+    initTheme();
 
-  <details>
-    <summary>للفنيين: تفعيل التنزيل التلقائي للملفات</summary>
-    <p class="muted" style="margin-top:8px">في وضع «الضغط على زر التصدير لكل صفحة»: فايرفوكس ← الإعدادات ← عام ← التنزيلات ← ألغِ «اسألني دائمًا أين أحفظ الملفات».</p>
-  </details>
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('atad_theme', isDark ? 'dark' : 'light'); } catch (e) {}
+    }
 
-  <footer>تصميم: سيف جمال المعولي<br>معولة بن شمس (5-12)</footer>
-</div>
-<div class="toast" id="toast"></div>
-<script>
-  const toast = t => { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2500); };
-  function mark(id){ document.getElementById(id).classList.add('done'); try{ localStorage.setItem('atad_'+id,'1'); }catch(e){} }
-  ['s1','s2'].forEach(id => { try{ if(localStorage.getItem('atad_'+id)) document.getElementById(id).classList.add('done'); }catch(e){} });
+    // التبديل بين تبويبات المعالج (Wizard Tabs)
+    function switchTab(num) {
+      [1, 2, 3].forEach(i => {
+        document.getElementById('tabBtn' + i).classList.toggle('active', i === num);
+        document.getElementById('panel' + i).classList.toggle('active', i === num);
+      });
+    }
 
-  // رابط Tampermonkey حسب المتصفح
-  const ua = navigator.userAgent, link = document.getElementById('tmLink'), note = document.getElementById('tmNote');
-  if (/Edg\//.test(ua)) { link.href = 'https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd'; link.textContent = '🧩 تثبيت Tampermonkey لـ Edge'; note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه.'; }
-  else if (/Chrome\//.test(ua) && !/Firefox/.test(ua)) { link.href = 'https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo'; link.textContent = '🧩 تثبيت Tampermonkey لـ Chrome'; note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه.'; }
+    // فتح وإغلاق النافذة المنبثقة
+    function openModal(id) {
+      const m = document.getElementById(id);
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
 
-  let code = '';
-  fetch('atad.user.js', { cache: 'no-store' }).then(r => r.text()).then(t => {
-    code = t;
-    const m = t.match(/@version\s+([\d.]+)/);
-    if (m) document.getElementById('ver').textContent = 'الإصدار ' + m[1];
-  }).catch(() => {});
-  async function copyCode(){
+    // إشعارات Toast
+    const toast = (msg) => {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('opacity-0', 'translate-y-3');
+      el.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        el.classList.remove('opacity-100', 'translate-y-0');
+        el.classList.add('opacity-0', 'translate-y-3');
+      }, 2600);
+    };
+
+    // تحديث حالة الإنجاز والحلقة الدائرية
+    function refreshProgress() {
+      let s1 = false, s2 = false;
+      try {
+        s1 = !!localStorage.getItem('atad_s1');
+        s2 = !!localStorage.getItem('atad_s2');
+      } catch (e) {}
+
+      // تحديث أزرار التبويبات
+      document.getElementById('tabBtn1').classList.toggle('done', s1);
+      document.getElementById('check1').classList.toggle('hidden', !s1);
+      document.getElementById('check1').classList.toggle('inline-flex', s1);
+
+      document.getElementById('tabBtn2').classList.toggle('done', s2);
+      document.getElementById('check2').classList.toggle('hidden', !s2);
+      document.getElementById('check2').classList.toggle('inline-flex', s2);
+
+      // حساب النسبة للحلقة الدائرية
+      const doneCount = (s1 ? 1 : 0) + (s2 ? 1 : 0);
+      const pct = doneCount * 50;
+      const circumference = 94.2;
+      const offset = circumference - (pct / 100) * circumference;
+
+      document.getElementById('ringCircle').style.strokeDashoffset = offset;
+      document.getElementById('ringText').textContent = pct + '%';
+
+      const statusLabel = document.getElementById('statusLabel');
+      const resetBtn = document.getElementById('resetBtn');
+
+      if (doneCount === 0) {
+        statusLabel.textContent = 'ابدأ بالخطوة 1';
+        statusLabel.className = 'text-xs font-bold text-amber-300 mt-0.5';
+        resetBtn.classList.add('hidden');
+      } else if (doneCount === 1) {
+        statusLabel.textContent = 'بقيت خطوة واحدة';
+        statusLabel.className = 'text-xs font-bold text-amber-300 mt-0.5';
+        resetBtn.classList.remove('hidden');
+      } else {
+        statusLabel.textContent = 'مكتمل وجاهز ✓';
+        statusLabel.className = 'text-xs font-bold text-emerald-400 mt-0.5';
+        resetBtn.classList.remove('hidden');
+      }
+    }
+
+    function mark(id, autoAdvance) {
+      try { localStorage.setItem('atad_' + id, '1'); } catch (e) {}
+      refreshProgress();
+      if (autoAdvance && id === 's1') {
+        setTimeout(() => switchTab(2), 600);
+      } else if (autoAdvance && id === 's2') {
+        setTimeout(() => switchTab(3), 600);
+      }
+    }
+
+    function resetProgress() {
+      try {
+        localStorage.removeItem('atad_s1');
+        localStorage.removeItem('atad_s2');
+      } catch (e) {}
+      refreshProgress();
+      switchTab(1);
+      toast('🔄 تمت إعادة ضبط خطوات التثبيت');
+    }
+
+    // تهيئة الحالة عند فتح الصفحة
+    refreshProgress();
     try {
-      if (!code) code = await (await fetch('atad.user.js', { cache: 'no-store' })).text();
-      await navigator.clipboard.writeText(code);
-      toast('✅ تم نسخ الكود');
-    } catch(e) { toast('تعذّر النسخ — استخدم «تنزيل الملف»'); }
-  }
-</script>
+      if (localStorage.getItem('atad_s1') && !localStorage.getItem('atad_s2')) {
+        switchTab(2);
+      } else if (localStorage.getItem('atad_s1') && localStorage.getItem('atad_s2')) {
+        switchTab(3);
+      }
+    } catch (e) {}
+
+    // التعرف التلقائي على المتصفح
+    const ua = navigator.userAgent;
+    const link = document.getElementById('tmLink');
+    const note = document.getElementById('tmNote');
+    const browserTitle = document.getElementById('browserDetectedTitle');
+
+    if (/Edg\//.test(ua)) {
+      link.href = 'https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd';
+      link.innerHTML = '<span>🧩 تثبيت Tampermonkey لـ Edge</span>';
+      browserTitle.textContent = 'إضافة Tampermonkey لمتصفح Edge';
+      note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه لضمان أفضل استقرار.';
+    } else if (/Chrome\//.test(ua) && !/Firefox/.test(ua)) {
+      link.href = 'https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo';
+      link.innerHTML = '<span>🧩 تثبيت Tampermonkey لـ Chrome</span>';
+      browserTitle.textContent = 'إضافة Tampermonkey لمتصفح Chrome';
+      note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه لضمان أفضل استقرار.';
+    }
+
+    // قراءة الإصدار والكود من ملف السكربت
+    let code = '';
+    fetch('atad.user.js', { cache: 'no-store' })
+      .then(r => r.text())
+      .then(t => {
+        code = t;
+        const m = t.match(/@version\s+([\d.]+)/);
+        if (m) document.getElementById('ver').textContent = 'الإصدار ' + m[1];
+      })
+      .catch(() => {
+        document.getElementById('ver').textContent = 'جاهز للتثبيت';
+      });
+
+    // نسخ الكود للحافظة
+    async function copyCode() {
+      try {
+        if (!code) {
+          code = await (await fetch('atad.user.js', { cache: 'no-store' })).text();
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = code;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        toast('✅ تم نسخ الكود بنجاح');
+      } catch (e) {
+        toast('⚠️ تعذّر النسخ — استخدم زر «تنزيل الملف»');
+      }
+    }
+  </script>
 </body>
 </html>
