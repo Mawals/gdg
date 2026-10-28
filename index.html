@@ -1,231 +1,131 @@
-<!DOCTYPE html>
-
-<html dir="rtl" lang="ar">
+<!doctype html>
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>تسجيل غياب الطلبة بمدرسة معولة بن شمس</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تثبيت أداة تصدير عهدة المختبر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-    body { font-family: 'Tajawal', sans-serif; background: #f4f4f4; color: #111; padding: 20px; direction: rtl; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: right; }
-    th { background: #eee; }
-    button, select, input { padding: 6px 12px; margin-left: 10px; border: 1px solid #ccc; border-radius: 6px; }
-    button { cursor: pointer; }
-    .present { background: #16a34a; color: #fff; }
-    .absent { background: #dc2626; color: #fff; }
-    .controls { margin-bottom: 20px; }
-  
-.hide-phone { display: none; }</style>
+  :root{
+    --bg:#f3f7f6; --card:#ffffff; --ink:#0f1f1d; --muted:#5b6b68; --line:#dbe5e3;
+    --brand:#0f766e; --brand-2:#14b8a6; --brand-ink:#ffffff; --done:#16a34a; --warn:#b45309; --soft:#e6f4f2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b1513; --card:#12201d; --ink:#e7f2ef; --muted:#9db3ae; --line:#24413b; --soft:#163a34; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,Tahoma,sans-serif;line-height:1.7}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 16px 60px}
+  header{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-radius:20px;padding:28px 26px;position:relative;overflow:hidden}
+  header::after{content:"📦";position:absolute;left:22px;top:14px;font-size:72px;opacity:.18}
+  header h1{margin:0 0 6px;font-size:28px;font-weight:800}
+  header p{margin:0;opacity:.92}
+  .ver{display:inline-block;margin-top:12px;background:rgba(255,255,255,.18);padding:3px 12px;border-radius:999px;font-size:14px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px;display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:start}
+  .num{width:56px;height:56px;border-radius:16px;background:var(--soft);color:var(--brand);display:grid;place-items:center;font-size:26px;font-weight:800}
+  .step.done .num{background:var(--done);color:#fff}
+  h2{margin:2px 0 6px;font-size:20px}
+  .muted{color:var(--muted);margin:0 0 12px}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:var(--brand-ink);text-decoration:none;border:0;border-radius:12px;padding:12px 20px;font:700 16px Tajawal,Tahoma;cursor:pointer;margin:4px 0 4px 8px}
+  .btn:hover{background:#115e59}
+  .btn.ghost{background:transparent;color:var(--brand);border:2px solid var(--brand)}
+  .btn.small{padding:8px 14px;font-size:14px}
+  .tip{background:var(--soft);border-radius:12px;padding:10px 14px;font-size:15px;margin-top:10px}
+  .tip b{color:var(--brand)}
+  ol{margin:6px 0 0;padding-inline-start:20px}
+  details{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:14px 18px;margin-top:18px}
+  summary{cursor:pointer;font-weight:700}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+  footer{text-align:center;color:var(--muted);margin-top:28px;font-size:14px}
+  @media (max-width:520px){ .step{grid-template-columns:1fr} .num{width:46px;height:46px;font-size:22px} header h1{font-size:23px} }
+</style>
 </head>
-<body><div style="position: absolute; top: 10px; left: 10px; font-size: 14px; color: #555; font-family: sans-serif;">تصميم / سيف جمال المعولي</div>
-<h2>تسجيل غياب الطلبة بمدرسة معولة بن شمس</h2>
-<div class="controls">
-<label>اسم المعلم: <input id="teacherName" placeholder="اكتب اسم المعلم" type="text"/></label>
-<label>الصف:
-    <select id="gradeSelect" onchange="updateSections()">
-<option value="">اختر</option>
-<option value="5">الصف الخامس</option>
-<option value="6">الصف السادس</option>
-<option value="7">الصف السابع</option>
-<option value="8">الصف الثامن</option>
-<option value="9">الصف التاسع</option>
-<option value="10">الصف العاشر</option>
-<option value="11">الصف الحادي عشر</option>
-<option value="12">الصف الثاني عشر</option>
-</select>
-</label>
-<label>الشعبة:
-    <select id="sectionSelect">
-<option value="">اختر</option>
-</select>
-</label>
-<button onclick="loadCSVData()">عرض الطلاب</button>
-<button onclick="exportToGoogleSheet()">📤 إرسال</button>
-<button id="noAbsenceBtn" style="margin-top: 10px; background-color: #555; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;" type="button">🚫 لا يوجد غياب</button></div>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th>الاسم</th>
-<th>الهاتف</th>
-<th>الحالة</th>
-</tr>
-</thead>
-<tbody id="studentsBody">
-<tr><td colspan="4">بانتظار تحميل البيانات...</td></tr>
-</tbody>
-</table>
-<p>
-  الغائبون: <span id="absCount">0</span> — الحاضرون: <span id="presCount">0</span>
-</p>
+<body>
+<div class="wrap">
+  <header>
+    <h1>أداة تصدير عهدة المختبر من «عتاد»</h1>
+    <p>تفتح عتاد وتمر على كل الأنواع الرئيسية والفرعية وكل الصفحات، وتجمع العهدة في ملف Excel واحد مع تقرير بالفروع التي لم تُنزَّل.</p>
+    <span class="ver" id="ver">الإصدار …</span>
+  </header>
+
+  <section class="step" id="s1">
+    <div class="num">1</div>
+    <div>
+      <h2>ثبّت إضافة Tampermonkey</h2>
+      <p class="muted">مرة واحدة فقط على كل جهاز. اضغط الزر ثم «أضف إلى Firefox» ← «أضف».</p>
+      <a class="btn" id="tmLink" href="https://addons.mozilla.org/ar/firefox/addon/tampermonkey/" target="_blank" rel="noopener" onclick="mark('s1')">🧩 تثبيت Tampermonkey</a>
+      <div class="tip" id="tmNote">إذا كانت الإضافة مثبتة عندك مسبقًا، انتقل للخطوة 2 مباشرة.</div>
+    </div>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="num">2</div>
+    <div>
+      <h2>ثبّت أداة العهدة</h2>
+      <p class="muted">ستفتح صفحة Tampermonkey وفيها الكود جاهزًا — اضغط <b>«تثبيت» (Install)</b> فقط.</p>
+      <a class="btn" href="atad.user.js" onclick="mark('s2')">⬇️ تثبيت الأداة</a>
+      <div class="tip"><b>التحديثات تلقائية:</b> أي تعديل جديد على الأداة يصل لكل الأجهزة تلقائيًا عن طريق Tampermonkey.</div>
+    </div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="num">3</div>
+    <div>
+      <h2>ابدأ الاستخدام</h2>
+      <ol>
+        <li>سجّل دخولك في البوابة التعليمية (اسمح لفايرفوكس بحفظ كلمة المرور).</li>
+        <li>ستظهر لوحة «📦 تصدير عهدة المختبر» أسفل يسار الصفحة.</li>
+        <li>اضغط <b>«▶️ ابدأ»</b> من الصفحة الرئيسية أو من داخل عتاد.</li>
+        <li>أول مرة فقط: اختر مدرستك من القائمة في عتاد، والأداة تتذكرها.</li>
+      </ol>
+      <div class="tip">⏱️ إذا كان عتاد بطيئًا، زِد «انتظار عتاد» في اللوحة إلى 120 ثانية.</div>
+    </div>
+  </section>
+
+  <details>
+    <summary>لم تظهر صفحة التثبيت في الخطوة 2؟ ثبّتها يدويًا</summary>
+    <ol>
+      <li>اضغط «نسخ الكود».</li>
+      <li>اضغط أيقونة Tampermonkey في شريط فايرفوكس ← «إنشاء سكربت جديد».</li>
+      <li>احذف كل المحتوى الموجود، والصق الكود (Ctrl+V)، ثم احفظ (Ctrl+S).</li>
+    </ol>
+    <button class="btn small" onclick="copyCode()">📋 نسخ الكود</button>
+    <a class="btn small ghost" href="atad.user.js" download>💾 تنزيل الملف</a>
+  </details>
+
+  <details>
+    <summary>للفنيين: تفعيل التنزيل التلقائي للملفات</summary>
+    <p class="muted" style="margin-top:8px">في وضع «الضغط على زر التصدير لكل صفحة»: فايرفوكس ← الإعدادات ← عام ← التنزيلات ← ألغِ «اسألني دائمًا أين أحفظ الملفات».</p>
+  </details>
+
+  <footer>تصميم: سيف جمال المعولي</footer>
+</div>
+<div class="toast" id="toast"></div>
 <script>
-const SHEET_URLS = [
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYkLDu5kwHXqoqZ9WPonUBDVrrbF3eo4hSAiuQosDnrYcrepDiSvTs6o2gBFrAQ/pub?gid=626465739&single=true&output=csv'
-];
-const EXPORT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw-WH146HgZOv84R9Pb5e9QtXqXKDzc9pNZ2pAJu0N2mxz9HikwwvTaDsufqnMl23lK/exec';
-const $ = selector => document.querySelector(selector);
-const state = { students: [], attendance: {} };
+  const toast = t => { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2500); };
+  function mark(id){ document.getElementById(id).classList.add('done'); try{ localStorage.setItem('atad_'+id,'1'); }catch(e){} }
+  ['s1','s2'].forEach(id => { try{ if(localStorage.getItem('atad_'+id)) document.getElementById(id).classList.add('done'); }catch(e){} });
 
-function updateCounts() {
-  let absent = 0, present = 0;
-  state.students.forEach(s => state.attendance[s.id] === false ? absent++ : present++);
-  $('#absCount').textContent = absent;
-  $('#presCount').textContent = present;
-}
+  // رابط Tampermonkey حسب المتصفح
+  const ua = navigator.userAgent, link = document.getElementById('tmLink'), note = document.getElementById('tmNote');
+  if (/Edg\//.test(ua)) { link.href = 'https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd'; link.textContent = '🧩 تثبيت Tampermonkey لـ Edge'; note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه.'; }
+  else if (/Chrome\//.test(ua) && !/Firefox/.test(ua)) { link.href = 'https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo'; link.textContent = '🧩 تثبيت Tampermonkey لـ Chrome'; note.textContent = 'الأداة مجرّبة على فايرفوكس، ويُفضّل استخدامه.'; }
 
-function renderStudents() {
-  const tbody = $('#studentsBody');
-  tbody.innerHTML = '';
-
-  state.students.forEach((student, index) => {
-    if (!(student.id in state.attendance)) {
-      state.attendance[student.id] = true;
-    }
-    const present = state.attendance[student.id];
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${student.name}</td>
-      <td>${student.phone}</td>
-    `;
-    const tdStatus = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.textContent = present ? 'حاضر' : 'غائب';
-    btn.className = present ? 'present' : 'absent';
-    btn.onclick = () => {
-      state.attendance[student.id] = !state.attendance[student.id];
-      renderStudents();
-    };
-    tdStatus.appendChild(btn);
-    tr.appendChild(tdStatus);
-    tbody.appendChild(tr);
-  });
-
-  updateCounts();
-}
-
-async function loadCSVData() {
-  const grade = $('#gradeSelect').value.trim();
-  const section = $('#sectionSelect').value.trim();
-  if (!grade || !section) {
-    alert('يرجى اختيار الصف والشعبة');
-    return;
+  let code = '';
+  fetch('atad.user.js', { cache: 'no-store' }).then(r => r.text()).then(t => {
+    code = t;
+    const m = t.match(/@version\s+([\d.]+)/);
+    if (m) document.getElementById('ver').textContent = 'الإصدار ' + m[1];
+  }).catch(() => {});
+  async function copyCode(){
+    try {
+      if (!code) code = await (await fetch('atad.user.js', { cache: 'no-store' })).text();
+      await navigator.clipboard.writeText(code);
+      toast('✅ تم نسخ الكود');
+    } catch(e) { toast('تعذّر النسخ — استخدم «تنزيل الملف»'); }
   }
-
-  try {
-    let combinedText = '';
-    for (const url of SHEET_URLS) {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const text = await res.text();
-      combinedText += text.trim() + '\n';
-    }
-    const lines = combinedText.trim().split('\n');
-
-    state.students = lines.slice(1).map((line, i) => {
-      const cols = line.split(',');
-      return {
-        id: i + 1,
-        phone: cols[0]?.trim() || '',
-        name: cols[1]?.trim() || '',
-        grade: cols[3]?.trim() || '',
-        section: cols[4]?.trim() || ''
-      };
-    }).filter(s => s.grade === grade && s.section === section);
-
-    renderStudents();
-  } catch (err) {
-    $('#studentsBody').innerHTML = `<tr><td colspan="4">تعذر تحميل البيانات</td></tr>`;
-    console.error(err);
-  }
-}
-
-function exportToGoogleSheet() {
-  const absents = state.students.filter(s => state.attendance[s.id] === false);
-  if (!absents.length) return alert('لا يوجد غياب لتصديره.');
-  const teacher = $('#teacherName').value.trim() || 'المعلم';
-  const grade = $('#gradeSelect').value;
-  const section = $('#sectionSelect').value;
-  const today = new Date().toLocaleDateString('ar-EG');
-
-  const rows = absents.map((s, i) => ({
-    serial: i + 1,
-    phone: formatPhoneOM(s.phone),
-    name: s.name,
-    message: `ولي أمر الطالب ${s.name}، نعلمكم بغياب ابنكم عن الصف ${grade}/${section} بتاريخ ${today}. — ${teacher}`
-  }));
-
-  fetch(EXPORT_WEBAPP_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(rows)
-  }).then(() => {
-    alert('✅ تم إرسال الغياب إلى جدول Google بنجاح');
-    // إعادة تعيين الصفحة بعد الإرسال
-    location.reload();
-    alert('✅ تم إرسال الغياب إلى جدول Google بنجاح');
-  }).catch(err => {
-    alert('❌ فشل الإرسال إلى الشيت');
-    console.error(err);
-  });
-}
-
-function formatPhoneOM(raw) {
-  const cleaned = raw.replace(/[^\d]/g, '');
-  if (cleaned.startsWith('968')) return '' + cleaned;
-  if (cleaned.startsWith('0')) return '968' + cleaned.slice(1);
-  if (cleaned.length === 8) return '' + cleaned;
-  return '';
-}
-
-function updateSections() {
-  const grade = $('#gradeSelect').value;
-  const sectionSelect = $('#sectionSelect');
-  sectionSelect.innerHTML = '<option value="">اختر</option>';
-  let count = 3;
-  if (grade === '10') count = 4;
-  else if (grade === '11') count = 6;
-  else if (grade === '12') count = 5;
-
-  for (let i = 1; i <= count; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = 'الشعبة ' + i;
-    sectionSelect.appendChild(opt);
-  }
-}
 </script>
-<script>
-document.getElementById("noAbsenceBtn").addEventListener("click", function () {
-  const teacher = document.getElementById("teacherName").value.trim();
-  const grade = document.getElementById("gradeSelect").value;
-  const section = document.getElementById("sectionSelect").value;
-  if (!teacher || !grade || !section) {
-    alert("يرجى إدخال اسم المعلم واختيار الصف والشعبة.");
-    return;
-  }
-
-  const today = new Date().toLocaleDateString('ar-EG');
-  const row = [{
-    serial: "-",
-    phone: "-",
-    name: "-",
-    message: `المعلم: ${teacher}\nالصف: ${grade}\nالشعبة: ${section}\nلا يوجد غياب في هذا الصف بتاريخ ${today}`
-  }];
-
-  fetch(EXPORT_WEBAPP_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(row)
-  }).then(() => {
-    alert("✅ تم إرسال إشعار عدم وجود غياب بنجاح");
-  }).catch(err => {
-    alert("❌ فشل في إرسال البيانات");
-    console.error(err);
-  });
-});
-</script></body>
+</body>
 </html>
