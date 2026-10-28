@@ -4,7 +4,7 @@
 // @author       سيف جمال المعولي
 // @updateURL    https://mawals.github.io/gdg/atad.user.js
 // @downloadURL  https://mawals.github.io/gdg/atad.user.js
-// @version      3.2
+// @version      3.5
 // @description  أعمالي ← عتاد ← المدارس ← المدرسة ← تقارير المختبر ← عهدة الأصناف المخبرية، ثم يمر على كل نوع رئيسي وفرعي وكل الصفحات ويجمعها في Excel واحد (أو يضغط زر التصدير لكل صفحة)
 // @match        *://*.moe.gov.om/*
 // @include      /^https?:\/\/([^\/]*\.)?moe\.gov\.om(:\d+)?\/.*$/
@@ -12,6 +12,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
+// @grant        GM_notification
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -21,7 +22,7 @@
 
   // ================= الإعدادات =================
   // المدرسة: تُكتب في خانة «المدرسة» في اللوحة، أو تُحفظ تلقائيًا أول مرة يختارها الفني
-  const SCHK = 'atad2_school', SCHN = 'atad2_schoolname';
+  const SCHK = 'atad3_school', SCHN = 'atad3_schoolname';
   const DEPT = 'المدارس';                     // القسم
   const MENU = 'تقارير المختبر';
   const REPORT = 'عهدة الأصناف المخبرية';
@@ -63,14 +64,17 @@
       <button data-a="start">▶️ ابدأ</button>
       <label style="display:block;margin:4px 0"><input type="radio" name="ax-mode" value="collect"> تجميع الكل في ملف Excel واحد</label>
       <label style="display:block;margin:4px 0"><input type="radio" name="ax-mode" value="export"> الضغط على زر التصدير لكل صفحة</label>
-      <label style="display:block;margin:4px 0">🏫 المدرسة: <input type="text" id="ax-school" placeholder="جزء من اسم المدرسة" style="width:150px"></label>
       <label style="display:block;margin:4px 0">⏱️ انتظار عتاد حتى <input type="number" id="ax-wait" min="20" max="600" style="width:55px"> ثانية</label>
       <button data-a="stop" style="background:#b91c1c">⏹ إيقاف (وتصدير ما جُمع)</button>
       <button data-a="xlsx">📥 تنزيل Excel لآخر نتيجة</button>
       <button data-a="pdf">🖨️ كشف PDF / طباعة</button>
       <button data-a="diag" style="background:#475569">🔍 فحص الصفحة</button>
       <div id="ax-status" style="margin-top:6px;padding:6px;background:#f0fdfa;border-radius:6px;min-height:18px;white-space:pre-line">جاهز.</div>
-      <div style="margin-top:6px;text-align:center;font-size:11px;color:#64748b">تصميم: سيف جمال المعولي</div>
+      <div style="margin-top:6px;text-align:center;font-size:11px;color:#64748b;line-height:1.6">تصميم: سيف جمال المعولي<br>معولة بن شمس (5-12)</div>
+      <div id="ax-timer" style="display:none;margin-top:6px;padding:6px;border-radius:6px;background:#fff7ed;border:1px solid #fdba74;text-align:center">
+        <div id="ax-timer-txt" style="font-weight:bold;color:#9a3412"></div>
+        <div style="height:6px;background:#fed7aa;border-radius:4px;margin-top:4px;overflow:hidden"><div id="ax-timer-bar" style="height:100%;width:0;background:#ea580c;transition:width .4s"></div></div>
+      </div>
     </div>`;
   panel.querySelectorAll('button').forEach(b => b.style.cssText += ';display:block;width:100%;margin:3px 0;padding:6px;border:0;border-radius:6px;background:#0f766e;color:#fff;cursor:pointer;font:13px Tahoma');
   document.body.appendChild(panel);
@@ -79,9 +83,6 @@
   const mode = GM_getValue(MODE, 'collect');
   panel.querySelector(`input[value=${mode}]`).checked = true;
   panel.querySelectorAll('input[name=ax-mode]').forEach(r => r.onchange = () => GM_setValue(MODE, r.value));
-  const schoolBox = panel.querySelector('#ax-school');
-  schoolBox.value = GM_getValue(SCHK, '');
-  schoolBox.onchange = () => GM_setValue(SCHK, norm(schoolBox.value));
   const waitBox = panel.querySelector('#ax-wait');
   waitBox.value = WAIT() / 1000;
   waitBox.onchange = () => { const v = Math.min(600, Math.max(20, +waitBox.value || 90)); waitBox.value = v; GM_setValue(WAITK, v); };
@@ -106,15 +107,25 @@
   const isVisible = el => !!(el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
   const textOf = el => norm(el.innerText || el.value || el.getAttribute('title') || el.getAttribute('alt') || '');
   const isLink = el => !!el.closest('a[href],button,input,[onclick],[role=button]');
+  const timerBox = panel.querySelector('#ax-timer'), timerTxt = panel.querySelector('#ax-timer-txt'), timerBar = panel.querySelector('#ax-timer-bar');
+  function showTimer(sec, total) {
+    timerBox.style.display = '';
+    timerTxt.textContent = `⏳ بانتظار عتاد: ${sec} / ${total} ثانية`;
+    timerBar.style.width = Math.min(100, sec / total * 100) + '%';
+  }
+  const hideTimer = () => { timerBox.style.display = 'none'; };
   async function waitFor(fn, ms, label) {
-    const t0 = Date.now(), end = t0 + ms;
+    const t0 = Date.now(), end = t0 + ms, total = Math.round(ms / 1000);
     let lastSec = -1;
-    while (Date.now() < end && !stopFlag && !leaving) {
-      const v = fn(); if (v) return v;
-      if (label) { const sec = Math.round((Date.now() - t0) / 1000); if (sec !== lastSec) { lastSec = sec; status(`${label}\n⏳ بانتظار عتاد: ${sec} / ${Math.round(ms / 1000)} ثانية`); } }
-      await sleep(400);
-    }
-    return null;
+    if (label) status(label);
+    try {
+      while (Date.now() < end && !stopFlag && !leaving) {
+        const v = fn(); if (v) return v;
+        if (label) { const sec = Math.floor((Date.now() - t0) / 1000); if (sec !== lastSec) { lastSec = sec; showTimer(sec, total); } }
+        await sleep(400);
+      }
+      return null;
+    } finally { if (label && !leaving) hideTimer(); }
   }
   function clickEl(el) { if (el.tagName === 'A') el.removeAttribute('target'); el.click(); }
 
@@ -262,31 +273,50 @@
 
   async function doSelPlace() {
     status('٢- اختيار القسم والمدرسة');
-    const dept = await waitFor(() => [...document.querySelectorAll('select')].find(x => [...x.options].some(o => AR(o.text) === AR(DEPT))), 15000);
-    if (!dept) { status(`⚠️ لم أجد قائمة القسم «${DEPT}».`); return; }
-    const opt = [...dept.options].find(o => AR(o.text) === AR(DEPT));
-    if (dept.value !== opt.value) { await setSelect(dept, opt.value); }
-    const sch = await waitFor(() => [...document.querySelectorAll('select')].find(x => x !== dept && isVisible(x) && realOptions(x).length), WAIT(), 'تحميل قائمة المدارس');
-    if (!sch) { status('⚠️ لم تظهر قائمة المدارس.'); return; }
+    // نعيد البحث عن القوائم في كل مرة لأن عتاد يعيد رسم الصفحة بعد كل اختيار
+    const findDept = () => [...document.querySelectorAll('select')].find(x => isVisible(x) && [...x.options].some(o => AR(o.text) === AR(DEPT)));
+    const deptOk = d => d && AR((d.options[d.selectedIndex] || {}).text) === AR(DEPT);
+    const findSch = () => [...document.querySelectorAll('select')].find(x => isVisible(x) && !panel.contains(x) &&
+      ![...x.options].some(o => AR(o.text) === AR(DEPT)) && realOptions(x).length);
+
+    let sch = null;
+    for (let tries = 0; tries < 4 && !sch; tries++) {
+      const dept = await waitFor(findDept, WAIT(), 'تحميل قائمة الأقسام');
+      if (stopFlag || leaving) return;
+      if (!dept) { status(`⚠️ لم أجد قائمة القسم «${DEPT}».`); return; }
+      if (!deptOk(dept)) {
+        const opt = [...dept.options].find(o => AR(o.text) === AR(DEPT));
+        await setSelect(dept, opt.value);
+        if (leaving) return;
+      }
+      // ننتظر ظهور قائمة المدارس مع بقاء القسم على «المدارس»
+      sch = await waitFor(() => { const d = findDept(); if (d && !deptOk(d)) return null; return findSch(); }, WAIT(), 'تحميل قائمة المدارس');
+      if (stopFlag || leaving) return;
+    }
+    if (!sch) { status('⚠️ لم تظهر قائمة المدارس. اختر القسم والمدرسة يدويًا والأداة تكمل.'); return; }
+
     const opts = realOptions(sch);
     const key = GM_getValue(SCHK, '');
-    let so = key ? opts.find(o => AR(o.text).includes(AR(key))) : null;
-    if (!so && opts.length === 1) so = opts[0];
-    if (!so && opts.some(o => o.value === sch.value)) so = opts.find(o => o.value === sch.value);
+    let so = (key && opts.find(o => AR(o.text) === AR(key))) || (opts.length === 1 ? opts[0] : null);
+    const remember = o => { GM_setValue(SCHK, norm(o.text)); GM_setValue(SCHN, norm(o.text)); };
     if (!so) {
-      status('🏫 اختر مدرستك من القائمة مرة واحدة، والأداة ستتذكرها وتكمل.');
+      status('🏫 اختر مدرستك من القائمة — مرة واحدة فقط، والأداة تتذكرها.');
+      // نحفظ الاختيار فورًا لأن عتاد قد ينتقل للصفحة التالية مباشرة
+      document.addEventListener('change', e => {
+        if (e.target.tagName !== 'SELECT') return;
+        const o = realOptions(e.target).find(x => x.value === e.target.value);
+        if (o && !AR(o.text).includes(AR(DEPT))) remember(o);
+      }, true);
       const v0 = sch.value;
-      // نحفظ الاختيار فورًا لأن عتاد قد ينتقل للصفحة التالية مباشرة بعد الاختيار
-      sch.addEventListener('change', () => { const o = opts.find(x => x.value === sch.value); if (o) { GM_setValue(SCHK, norm(o.text)); GM_setValue(SCHN, norm(o.text)); } }, true);
-      const picked = await waitFor(() => (sch.value !== v0 && opts.find(o => o.value === sch.value)) || null, 300000);
-      if (!picked) { status('⚠️ لم يتم اختيار المدرسة.'); return; }
-      so = picked;
+      so = await waitFor(() => { const x = findSch(); return x && x.value !== v0 ? realOptions(x).find(o => o.value === x.value) || null : null; }, 300000);
+      if (!so) { if (!leaving) status('⚠️ لم يتم اختيار المدرسة.'); return; }
     }
-    GM_setValue(SCHK, norm(so.text)); GM_setValue(SCHN, norm(so.text)); schoolBox.value = norm(so.text);
-    const s = load(); s.stage = 'menu'; save(s);
-    if (sch.value !== so.value) await setSelect(sch, so.value);
+    remember(so);
+    const st = load(); st.stage = 'menu'; save(st);
+    const cur = findSch();
+    if (cur && cur.value !== so.value) { await setSelect(cur, so.value); if (leaving) return; }
     await sleep(1500);
-    if (urlStage() === 'selplace') { const b = findButton(['دخول', 'موافق', 'انتقال', 'اختيار', 'متابعة']); if (b) clickEl(b); }
+    if (!leaving && urlStage() === 'selplace') { const b = findButton(['دخول', 'موافق', 'انتقال', 'اختيار', 'متابعة']); if (b) clickEl(b); }
   }
 
   async function doMenu() {
@@ -469,6 +499,82 @@
     const head = partial ? '⏹ توقف قبل الاكتمال' : '✅ انتهى';
     const what = s.mode === 'export' ? `ملفات التصدير: ${s.files}` : `الأصناف: ${d.rows.length}`;
     status(`${head} — ${what}\nفروع تمت: ${log.length - bad.length}${bad.length ? `\n❌ فروع بها مشكلة: ${bad.length} (انظر ورقة «تقرير التنزيل»)` : ''}`);
+    hideTimer();
+    showDoneBubble(d, log.length - bad.length, bad.length, !!partial);
+  }
+
+  // ================= فقاعة انتهاء التصدير =================
+  function chime() {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, ac.currentTime + i * 0.15);
+        g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime + i * 0.15 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + i * 0.15 + 0.5);
+        o.connect(g).connect(ac.destination); o.start(ac.currentTime + i * 0.15); o.stop(ac.currentTime + i * 0.15 + 0.55);
+      });
+    } catch (e) {}
+  }
+  function showDoneBubble(d, okCount, badCount, partial) {
+    const old = document.getElementById('ax-done'); if (old) old.remove();
+    const clean = !badCount && !partial;
+    const color = clean ? '#0f766e' : '#c2410c';
+    const title = partial ? 'توقف تصدير العهدة قبل الاكتمال' : clean ? 'انتهى تصدير عهدة المختبر بنجاح' : 'انتهى تصدير العهدة — مع ملاحظات';
+    const what = d.mode === 'export' ? `${d.files} ملف تصدير` : `${d.rows.length} صنفًا`;
+    const box = document.createElement('div');
+    box.id = 'ax-done'; box.dir = 'rtl';
+    box.innerHTML = `
+      <style>
+        #ax-done{position:fixed;inset:0;z-index:2147483647;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;font-family:Tahoma,Arial;animation:axFade .3s ease}
+        #ax-done .card{position:relative;background:#fff;border-radius:22px;padding:30px 30px 22px;width:min(380px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);border-top:8px solid ${color};animation:axPop .45s cubic-bezier(.2,1.4,.4,1)}
+        #ax-done .flask{position:relative;width:96px;height:96px;margin:-78px auto 8px;background:#fff;border-radius:50%;display:grid;place-items:center;font-size:56px;box-shadow:0 6px 18px rgba(0,0,0,.18);animation:axBob 1.6s ease-in-out infinite}
+        #ax-done .b{position:absolute;bottom:58px;border-radius:50%;background:${clean ? '#5eead4' : '#fdba74'};opacity:0;animation:axRise 2.4s ease-in infinite}
+        #ax-done h2{margin:6px 0 6px;font-size:20px;color:${color}}
+        #ax-done p{margin:4px 0;color:#334155;font-size:15px}
+        #ax-done .stats{display:flex;gap:8px;justify-content:center;margin:14px 0 6px}
+        #ax-done .st{flex:1;background:#f1f5f9;border-radius:12px;padding:8px 4px;font-size:13px;color:#475569}
+        #ax-done .st b{display:block;font-size:20px;color:#0f172a}
+        #ax-done .st.bad b{color:#c2410c}
+        #ax-done .btns{display:flex;gap:8px;margin-top:16px}
+        #ax-done button{flex:1;border:0;border-radius:10px;padding:10px 6px;font:bold 14px Tahoma;cursor:pointer;background:#e2e8f0;color:#0f172a}
+        #ax-done button.main{background:${color};color:#fff}
+        #ax-done .credit{margin-top:12px;font-size:11px;color:#94a3b8}
+        @keyframes axFade{from{opacity:0}}
+        @keyframes axPop{from{transform:scale(.6);opacity:0}}
+        @keyframes axBob{50%{transform:translateY(-6px) rotate(-6deg)}}
+        @keyframes axRise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.9}100%{transform:translateY(-120px) scale(1.2);opacity:0}}
+      </style>
+      <div class="card">
+        <span class="b" style="left:44%;width:10px;height:10px;animation-delay:0s"></span>
+        <span class="b" style="left:52%;width:7px;height:7px;animation-delay:.6s"></span>
+        <span class="b" style="left:48%;width:12px;height:12px;animation-delay:1.2s"></span>
+        <span class="b" style="left:56%;width:8px;height:8px;animation-delay:1.8s"></span>
+        <div class="flask">${clean ? '🧪' : '⚗️'}</div>
+        <h2>${title}</h2>
+        <p>${esc(GM_getValue(SCHN, ''))}</p>
+        <div class="stats">
+          <div class="st"><b>${what.split(' ')[0]}</b>${what.split(' ').slice(1).join(' ')}</div>
+          <div class="st"><b>${okCount}</b>فرع تم تنزيله</div>
+          <div class="st ${badCount ? 'bad' : ''}"><b>${badCount}</b>فرع به مشكلة</div>
+        </div>
+        ${badCount || partial ? '<p style="font-size:13px;color:#9a3412">راجع ورقة «تقرير التنزيل» في ملف الإكسل.</p>' : '<p style="font-size:13px">تم حفظ ملف الإكسل في مجلد التنزيلات.</p>'}
+        <div class="btns">
+          ${d.rows.length ? '<button class="main" data-x="pdf">🖨️ كشف PDF</button><button data-x="xlsx">📥 Excel مرة أخرى</button>' : ''}
+          <button data-x="close">إغلاق</button>
+        </div>
+        <div class="credit">تصميم: سيف جمال المعولي — معولة بن شمس (5-12)</div>
+      </div>`;
+    box.addEventListener('click', e => {
+      const x = e.target.dataset && e.target.dataset.x;
+      if (e.target === box || x === 'close') box.remove();
+      if (x === 'pdf') printPDF(d);
+      if (x === 'xlsx') exportExcel(d);
+    });
+    document.body.appendChild(box);
+    chime();
+    try { GM_notification({ title: '🧪 ' + title, text: `${what} — ${okCount} فرع تم${badCount ? ` — ${badCount} فرع به مشكلة` : ''}`, timeout: 15000 }); } catch (e) {}
   }
 
   // ================= التصدير =================
@@ -483,6 +589,7 @@
     const bad = log.filter(x => x.status !== ST_OK);
     const aoa = [
       ['تقرير تنزيل عهدة الأصناف المخبرية', '', '', '', '', '', ''],
+      ['المدرسة', GM_getValue(SCHN, '')],
       ['التاريخ', d.date],
       ['فروع تم تنزيلها', log.length - bad.length],
       ['فروع لم يتم تنزيلها أو ناقصة أو فارغة', bad.length],
