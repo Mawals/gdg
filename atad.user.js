@@ -2,9 +2,9 @@
 // @name         تصدير عهدة المختبر - عتاد
 // @namespace    mulawah-school
 // @author       سيف جمال المعولي
-// @updateURL    https://mulawah-school.github.io/atad/atad.user.js
-// @downloadURL  https://mulawah-school.github.io/atad/atad.user.js
-// @version      3.1
+// @updateURL    https://mawals.github.io/gdg/atad.user.js
+// @downloadURL  https://mawals.github.io/gdg/atad.user.js
+// @version      3.2
 // @description  أعمالي ← عتاد ← المدارس ← المدرسة ← تقارير المختبر ← عهدة الأصناف المخبرية، ثم يمر على كل نوع رئيسي وفرعي وكل الصفحات ويجمعها في Excel واحد (أو يضغط زر التصدير لكل صفحة)
 // @match        *://*.moe.gov.om/*
 // @include      /^https?:\/\/([^\/]*\.)?moe\.gov\.om(:\d+)?\/.*$/
