@@ -102,7 +102,7 @@
 
   <!-- الشريط العلوي (Top Command Bar) -->
   <header class="w-full border-b border-stone-200/80 dark:border-stone-800/80 bg-white/70 dark:bg-charcoal/70 backdrop-blur-xl sticky top-0 z-30">
-    <div class="max-w-6xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
       
       <!-- الشعار والهوية -->
       <div class="flex items-center gap-3.5">
@@ -147,15 +147,15 @@
   </header>
 
   <!-- مساحة العمل الرئيسية (Bento Split-Screen Layout) -->
-  <main class="max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 flex-1">
+  <main class="max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex-1">
     
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div class="flex flex-col gap-6">
 
       <!-- العمود الأيمن: بطاقة الهوية + محاكي الأداة + الإنجاز (5 أعمدة) -->
-      <div class="lg:col-span-5 space-y-5">
+      <div class="contents">
         
         <!-- بطاقة الملخص الفاخرة (Dark Obsidian Card) -->
-        <div class="rounded-3xl bg-stone-900 dark:bg-charcoal text-white p-6 sm:p-7 border border-stone-800 shadow-2xl relative overflow-hidden">
+        <div class="order-1 rounded-3xl bg-stone-900 dark:bg-charcoal text-white p-6 sm:p-7 border border-stone-800 shadow-2xl relative overflow-hidden">
           <div class="absolute -left-10 -bottom-10 w-44 h-44 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
           <div class="flex items-center justify-between gap-4 mb-5">
@@ -209,7 +209,7 @@
         </div>
 
         <!-- بطاقة معلومات المصمم + إعادة الضبط -->
-        <div class="rounded-2xl bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 p-4 px-5 flex items-center justify-between shadow-sm">
+        <div class="order-3 rounded-2xl bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 p-4 px-5 flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -230,7 +230,7 @@
       </div>
 
       <!-- العمود الأيسر: معالج الخطوات التفاعلي (Interactive Stepper) (7 أعمدة) -->
-      <div class="lg:col-span-7 bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-8 shadow-xl shadow-stone-900/5">
+      <div class="order-2 bg-white dark:bg-charcoal border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-8 shadow-xl shadow-stone-900/5">
         
         <!-- شريط اختيار الخطوات (3 Tabs) -->
         <div class="grid grid-cols-3 gap-2.5 sm:gap-3 mb-7">
