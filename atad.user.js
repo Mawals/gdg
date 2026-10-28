@@ -4,7 +4,7 @@
 // @author       سيف جمال المعولي
 // @updateURL    https://mawals.github.io/gdg/atad.user.js
 // @downloadURL  https://mawals.github.io/gdg/atad.user.js
-// @version      3.9
+// @version      4.0
 // @description  أعمالي ← عتاد ← المدارس ← المدرسة ← تقارير المختبر ← عهدة الأصناف المخبرية، ثم يمر على كل نوع رئيسي وفرعي وكل الصفحات ويجمعها في Excel واحد (أو يضغط زر التصدير لكل صفحة)
 // @match        *://*.moe.gov.om/*
 // @include      /^https?:\/\/([^\/]*\.)?moe\.gov\.om(:\d+)?\/.*$/
@@ -272,24 +272,39 @@
   const textOf = el => norm(el.innerText || el.value || el.getAttribute('title') || el.getAttribute('alt') || '');
   const isLink = el => !!el.closest('a[href],button,input,[onclick],[role=button]');
   const timerBox = panel.querySelector('#ax-timer'), timerTxt = panel.querySelector('#ax-timer-txt'), timerBar = panel.querySelector('#ax-timer-bar');
-  function showTimer(sec, total) {
-    timerBox.style.display = 'block';
-    timerTxt.textContent = `⏳ بانتظار عتاد: ${sec} / ${total} ثانية`;
-    timerBar.style.width = Math.min(100, sec / total * 100) + '%';
+  // عدّاد مستقل يعدّ كل ثانية حتى المدة المحددة — يستمر حتى أثناء تحميل عتاد للصفحة
+  let timerInt = null;
+  function startTimer(total) {
+    stopTimer();
+    const t0 = Date.now();
+    const draw = () => {
+      const sec = Math.min(total, Math.floor((Date.now() - t0) / 1000));
+      timerBox.style.display = 'block';
+      timerTxt.textContent = `⏳ بانتظار عتاد: ${sec} / ${total} ثانية`;
+      timerBar.style.width = (sec / total * 100) + '%';
+      if (sec >= total) stopTimer(true);
+    };
+    draw();
+    timerInt = setInterval(draw, 250);
   }
-  const hideTimer = () => { timerBox.style.display = 'none'; };
+  function stopTimer(keep) {
+    if (timerInt) { clearInterval(timerInt); timerInt = null; }
+    if (!keep) timerBox.style.display = 'none';
+  }
+  const hideTimer = () => stopTimer();
   async function waitFor(fn, ms, label) {
-    const t0 = Date.now(), end = t0 + ms, total = Math.round(ms / 1000);
-    let lastSec = -1;
-    if (label) status(label);
+    const end = Date.now() + ms;
+    if (label) { status(label); startTimer(Math.round(ms / 1000)); }
     try {
       while (Date.now() < end && !stopFlag && !leaving) {
         const v = fn(); if (v) return v;
-        if (label) { const sec = Math.floor((Date.now() - t0) / 1000); if (sec !== lastSec) { lastSec = sec; showTimer(sec, total); } }
         await sleep(400);
       }
       return null;
-    } finally { if (label && !leaving) hideTimer(); }
+    } finally {
+      // إذا كان عتاد يحمّل صفحة جديدة نترك العدّاد يكمل العد حتى تكتمل
+      if (label && !leaving) stopTimer();
+    }
   }
   function clickEl(el) { if (el.tagName === 'A') el.removeAttribute('target'); el.click(); }
 
